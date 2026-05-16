@@ -247,32 +247,35 @@ def analyze():
             # Secure filename handling
             safe_filename = secure_filename(file.filename)
 
-            filename = f"{uuid.uuid4().hex[:8]}_{safe_filename}"
-
-            filepath = os.path.join('static/uploads', filename)
-
-            # Save file
-            file.save(filepath)
-
-            # Read image
-            image = cv2.imread(filepath)
+            # Read image in memory to prevent disk I/O DoS
+            file_bytes = np.frombuffer(file.read(), np.uint8)
+            image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
 
             if image is None:
                 flash('Error reading image file', 'error')
                 return redirect(request.url)
 
             # Convert BGR to RGB
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-            # Analyze image
-            results = analyze_image(image)
+            # Base64 encode for frontend display
+            import base64
+            import concurrent.futures
+            _, buffer = cv2.imencode('.jpg', image)
+            image_b64 = base64.b64encode(buffer).decode('utf-8')
+
+            # Offload heavy ML inference to a thread pool to prevent blocking WSGI worker
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(analyze_image, image_rgb)
+                results = future.result()
 
             flash('Analysis completed successfully!', 'success')
 
             return render_template(
                 'results.html',
                 results=results,
-                filename=filename,
+                filename=safe_filename,
+                image_b64=image_b64,
                 timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             )
 
