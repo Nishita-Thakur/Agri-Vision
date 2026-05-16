@@ -16,7 +16,14 @@ import json
 app = Flask(__name__)
 app.secret_key = 'agri-vision-secret-key-2024'
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB max
-
+LANG = {
+    "en": {
+        "welcome": "Welcome to Agri Vision"
+    },
+    "te": {
+        "welcome": "అగ్రి విజన్‌కు స్వాగతం"
+    }
+}
 # Create directories
 os.makedirs('static/uploads', exist_ok=True)
 os.makedirs('static/css', exist_ok=True)
@@ -141,7 +148,7 @@ def datetimeformat_filter(value):
 @app.route('/')
 def index():
     """Home page"""
-    return render_template('index.html')
+    return render_template('index.html', text=LANG.get(lang, LANG["en"]), lang=lang)
 
 @app.route('/analyze', methods=['GET', 'POST'])
 def analyze():
@@ -289,6 +296,11 @@ def health():
         'model_loaded': model_loaded,
         'service': 'Agri-Vision Cotton Analysis API'
     })
+
+@app.route("/set-language/<lang>")
+def set_language(lang):
+    return redirect(url_for("index", lang=lang))
+
 
 if __name__ == '__main__':
     print("=" * 60)
