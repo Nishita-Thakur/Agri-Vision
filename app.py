@@ -405,6 +405,10 @@ def datetimeformat_filter(value):
         return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     return value
 
+@app.route('/stories')
+def stories():
+    return render_template("stories.html")
+
 if __name__ == '__main__':
     logger.info("=" * 60)
     logger.info("Agri-Vision Cotton Analysis System")
