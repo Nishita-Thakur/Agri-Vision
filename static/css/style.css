@@ -201,8 +201,8 @@ body {
 
 @media (min-width: 992px) {
     .col-lg-4 {
-        flex: 0 0 33.3333%;
-        max-width: 33.3333%;
+        flex: 0 0 30%;
+        max-width: 30%;
     }
 }
 
@@ -214,6 +214,10 @@ body {
     box-shadow: var(--card-shadow);
     overflow: hidden;
     transition: var(--transition-smooth);
+
+    width: 100%;
+    min-height: 320px;
+    max-width: 100%;
 }
 
 .card:hover {
@@ -2282,4 +2286,73 @@ body {
     .section-header h2 {
         font-size: 1.8rem;
     }
+}
+
+
+/* ==========================================================
+   Stories Page Card Alignment & Layout Improvements
+
+   This styling enhancement improves the Stories page
+   card structure by creating better spacing balance,
+   responsive alignment, equal-height behavior, and
+   smoother visual consistency across all story cards.
+
+   Main Improvements:
+   - Equal height story cards
+   - Improved card responsiveness
+   - Better spacing consistency
+   - Reduced unnecessary empty space
+   - Modern hover interaction effects
+   - Cleaner layout alignment
+========================================================== */
+
+.stories-grid .card {
+    height: 100%;
+    border-radius: 24px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.stories-grid .card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 35px rgba(93, 211, 139, 0.15);
+}
+
+.stories-grid .card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+}
+
+@media (max-width: 768px) {
+    .stories-grid {
+        gap: 1.5rem;
+    }
+}
+
+
+/* Smooth interaction animation improvements */
+
+.stories-grid .card {
+    will-change: transform;
+}
+
+.stories-grid .card:hover {
+    cursor: pointer;
+}
+
+/* Responsive container spacing improvements */
+
+.stories-header {
+    max-width: 720px;
+    margin-inline: auto;
+}
+
+.stories-grid {
+    row-gap: 2rem;
+}
+
+.stories-grid .card {
+    width: 100%;
 }
