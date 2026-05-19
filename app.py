@@ -53,6 +53,9 @@ os.makedirs('static/css', exist_ok=True)
 os.makedirs('models', exist_ok=True)
 
 ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+MAX_INFERENCE_DIMENSION = 1024
+DISPLAY_IMAGE_MAX_DIMENSION = 1200
+DISPLAY_JPEG_QUALITY = 80
 
 # --- Class Names ---
 # --- Disease class list (from confusion matrix order) ---
@@ -255,8 +258,16 @@ def generate_recommendations(disease_result, growth_result):
         recs.extend(grow_map[gmain])
     # Recommend only top 5 relevant
     return recs[:5]
-def analyze_image(image):
+def resize_image(image, max_dim=MAX_INFERENCE_DIMENSION):
+    height, width = image.shape[:2]
+    if max(height, width) <= max_dim:
+        return image
+    scale = max_dim / float(max(height, width))
+    new_size = (int(width * scale), int(height * scale))
+    return cv2.resize(image, new_size, interpolation=cv2.INTER_AREA)
 
+
+def analyze_image(image):
     # First detect cotton growth stage
     growth = infer_growth_stage(image)
 
@@ -282,10 +293,13 @@ def analyze_image(image):
         "growth": growth,
         "recommendations": recs,
     }
+
 # UTILITY: For image bounding box rendering in the frontend, also supply dimensions
 def encode_image_for_display(image):
     import base64
-    _, buffer = cv2.imencode('.jpg', image)
+    display_image = resize_image(image, DISPLAY_IMAGE_MAX_DIMENSION)
+    encode_params = [int(cv2.IMWRITE_JPEG_QUALITY), DISPLAY_JPEG_QUALITY]
+    _, buffer = cv2.imencode('.jpg', display_image, encode_params)
     image_b64 = base64.b64encode(buffer).decode('utf-8')
     return image_b64
 
@@ -391,8 +405,9 @@ def analyze():
             return redirect(request.url)
         try:
             safe_filename, image, image_rgb = read_uploaded_image(file)
+            compressed_rgb = resize_image(image_rgb, MAX_INFERENCE_DIMENSION)
             image_b64 = encode_image_for_display(image)
-            results = analyze_image(image_rgb)
+            results = analyze_image(compressed_rgb)
             # Render UI, pass bounding boxes for JS drawing, raw json, etc
             return render_template(
                 "results.html",
