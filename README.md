@@ -2,25 +2,55 @@
 
 Agri-Vision is an AI-powered system that analyzes cotton crop images to determine growth stages and health conditions.  
 It helps farmers and researchers make informed decisions about crop management and harvest timing.
+<div align="center">
+
+## 🌱 AI Crop Analysis Initialization
+
+<img src="https://img.shields.io/badge/AI-Powered-blue?style=for-the-badge&logo=openai&logoColor=white"/>
+<img src="https://img.shields.io/badge/Crop-Analysis-22c55e?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/Status-Active-0ea5e9?style=for-the-badge"/>
+
+</div>
 
 ---
-/*
-|--------------------------------------------------------------------------
-| AI Crop Analysis Initialization
-|--------------------------------------------------------------------------
-| This module is responsible for preparing the AI-powered crop
-| analysis workflow. It manages image preprocessing, initializes
-| prediction models, and validates uploaded crop images before
-| sending them for analysis.
-|
-| Future Enhancements:
-| - Multi-crop disease detection
-| - Real-time prediction rendering
-| - Cloud-based AI integration
-| - Performance optimization for mobile devices
-|--------------------------------------------------------------------------
-*/
 
+> 🚀 This module prepares the complete AI-powered crop analysis workflow by handling image preprocessing, initializing prediction models, and validating uploaded crop images before analysis.
+
+<br>
+
+<table>
+<tr>
+<td width="50%">
+
+### ⚙️ Core Responsibilities
+- 📸 Image preprocessing
+- 🧠 AI model initialization
+- ✅ Crop image validation
+- 🔍 Prediction workflow handling
+- ⚡ Optimized processing pipeline
+
+</td>
+
+<td width="50%">
+
+### 🌟 Future Enhancements
+- 🌾 Multi-crop disease detection
+- 📡 Real-time prediction rendering
+- ☁️ Cloud-based AI integration
+- 📱 Mobile performance optimization
+- 🤖 Advanced deep learning support
+
+</td>
+</tr>
+</table>
+
+---
+
+<div align="center">
+
+### 💡 Smart Agriculture • AI Driven • Modern Workflow
+
+</div>
 ## 📌 Overview
 
 Agri-Vision uses deep learning and computer vision techniques to:
