@@ -418,7 +418,6 @@ def analyze():
             lon = request.form.get("lon", type=float)
             city = request.form.get("city", type=str)
             weather = None
-
             if lat and lon:
                 owm_key = os.getenv("OPENWEATHER_API_KEY")
                 weather = get_weather(lat, lon, owm_key)
@@ -427,11 +426,13 @@ def analyze():
                 if geo:
                     owm_key = os.getenv("OPENWEATHER_API_KEY")
                     weather = get_weather(geo["lat"], geo["lon"], owm_key)
-
             if weather and results.get("disease") and results.get("growth"):
                 extra_recs = generate_weather_recommendations(weather)
                 results["recommendations"] = (results.get("recommendations", []) + extra_recs)[:6]
                 results["weather"] = weather
+
+            if results.get("error"):
+                raise ValueError(results["error"])
 
             # Render UI, pass bounding boxes for JS drawing, raw json, etc
             return render_template(
