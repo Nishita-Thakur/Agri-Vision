@@ -143,7 +143,74 @@
             <p style="margin-bottom: 2rem; color: var(--text-muted);">No cotton growth stage detected.</p>
             {% endif %}
             </div>
-
+{% if weather %}
+<div class="weather-card" style="
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #667eea15, #764ba215);
+    border: 1px solid #dee2e6;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+">
+    <h3 style="margin: 0 0 1rem; color: #343a40; font-size: 1.1rem;">
+        ☁️ Current Weather Conditions
+    </h3>
+ 
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem;">
+ 
+        {% if weather.temperature is not none %}
+        <div class="w-stat" style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+            <div style="font-size: 1.8rem;">🌡️</div>
+            <div style="font-size: 1.3rem; font-weight: 600; color: #e74c3c;">{{ weather.temperature }}°C</div>
+            <div style="font-size: 0.75rem; color: #6c757d;">Temperature</div>
+        </div>
+        {% endif %}
+ 
+        {% if weather.humidity is not none %}
+        <div class="w-stat" style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+            <div style="font-size: 1.8rem;">💧</div>
+            <div style="font-size: 1.3rem; font-weight: 600; color: #3498db;">{{ weather.humidity }}%</div>
+            <div style="font-size: 0.75rem; color: #6c757d;">Humidity</div>
+        </div>
+        {% endif %}
+ 
+        {% if weather.precipitation is not none %}
+        <div class="w-stat" style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+            <div style="font-size: 1.8rem;">🌧️</div>
+            <div style="font-size: 1.3rem; font-weight: 600; color: #2980b9;">{{ weather.precipitation }} mm</div>
+            <div style="font-size: 0.75rem; color: #6c757d;">Precipitation</div>
+        </div>
+        {% endif %}
+ 
+        {% if weather.wind_speed is not none %}
+        <div class="w-stat" style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+            <div style="font-size: 1.8rem;">💨</div>
+            <div style="font-size: 1.3rem; font-weight: 600; color: #27ae60;">{{ weather.wind_speed | round(0) | int }} km/h</div>
+            <div style="font-size: 0.75rem; color: #6c757d;">Wind Speed</div>
+        </div>
+        {% endif %}
+ 
+        {% if weather.uv_index is not none %}
+        <div class="w-stat" style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+            <div style="font-size: 1.8rem;">☀️</div>
+            <div style="font-size: 1.3rem; font-weight: 600; color: #f39c12;">{{ weather.uv_index }}</div>
+            <div style="font-size: 0.75rem; color: #6c757d;">UV Index</div>
+        </div>
+        {% endif %}
+ 
+        <div class="w-stat" style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+            <div style="font-size: 1.8rem;">{{ weather.icon }}</div>
+            <div style="font-size: 0.9rem; font-weight: 500; color: #495057;">{{ weather.description }}</div>
+            <div style="font-size: 0.75rem; color: #6c757d;">Condition</div>
+        </div>
+ 
+    </div>
+ 
+    <p style="margin: 0.75rem 0 0; font-size: 0.75rem; color: #adb5bd; text-align: right;">
+        Source: {{ weather.source | title }} · Lat {{ "%.3f"|format(weather.lat) }}, Lon {{ "%.3f"|format(weather.lon) }}
+    </p>
+</div>
+{% endif %}
             <!-- =========================================================
                 Recommendations Section Redesign
 
