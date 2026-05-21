@@ -1375,6 +1375,132 @@ body {
     flex-shrink: 0;
 }
 
+
+/* =========================================================
+   Demo Analysis Visual Hierarchy Enhancement System
+   ---------------------------------------------------------
+   This module focuses on improving the readability and
+   visual organization of AI-generated crop analysis data.
+
+   Goals:
+   - Improve user attention flow
+   - Create better spacing rhythm
+   - Enhance card distinction
+   - Improve mobile readability
+   - Modernize analytics presentation
+   - Maintain accessibility standards
+
+   Designed specifically for:
+   - Disease prediction cards
+   - Confidence tables
+   - Recommendation sections
+   - Crop growth analysis panels
+   ========================================================= */
+
+/* =========================================================
+   Enhanced Demo Analysis Result Card UI Improvements
+   =========================================================
+
+   This styling enhancement improves the visual hierarchy,
+   spacing, readability, and modern appearance of the
+   analysis result cards shown in the Demo page.
+
+   Improvements Included:
+   - Better card spacing
+   - Improved section separation
+   - Softer shadows and hover effects
+   - Enhanced typography readability
+   - Better responsive behavior
+   - Cleaner visual hierarchy
+   - Modern glassmorphism-inspired UI polish
+   - Improved table spacing and structure
+   - Smoother transition animations
+
+   These updates improve user engagement while maintaining
+   the existing Agri-Vision design system consistency.
+   ========================================================= */
+
+.result-card,
+.analysis-card,
+.demo-card {
+    border-radius: 24px;
+    padding: 2rem;
+    transition: all 0.35s ease;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(93, 211, 139, 0.12);
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.18);
+}
+
+.result-card:hover,
+.analysis-card:hover,
+.demo-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 45px rgba(93, 211, 139, 0.18);
+}
+
+.result-card h2,
+.analysis-card h2,
+.demo-card h2 {
+    margin-bottom: 1rem;
+    letter-spacing: 0.3px;
+}
+
+.result-card p,
+.analysis-card p,
+.demo-card p {
+    line-height: 1.8;
+    opacity: 0.95;
+}
+
+.result-card table,
+.analysis-card table {
+    margin-top: 1.2rem;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.result-card tr,
+.analysis-card tr {
+    transition: background 0.2s ease;
+}
+
+.result-card tr:hover,
+.analysis-card tr:hover {
+    background: rgba(93, 211, 139, 0.05);
+}
+
+/* =========================================================
+   Mobile Responsiveness Enhancements
+   ========================================================= */
+
+@media (max-width: 768px) {
+    .result-card,
+    .analysis-card,
+    .demo-card {
+        padding: 1.4rem;
+        border-radius: 18px;
+    }
+
+    .result-card h2,
+    .analysis-card h2,
+    .demo-card h2 {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .result-card,
+    .analysis-card,
+    .demo-card {
+        padding: 1rem;
+    }
+
+    .result-card table,
+    .analysis-card table {
+        font-size: 0.9rem;
+    }
+}
+
 /* Field Photo Comparison */
 .comparison-page {
     padding-bottom: 5rem;
