@@ -1000,7 +1000,7 @@ def api_analyze():
         return jsonify({"error": "No file selected"}), 400
 
     if not is_allowed_image(file.filename):
-        return jsonify({"error": "Invalid file type. Please upload an image (PNG, JPG, JPEG, GIF)"}), 400
+        return jsonify({'error': 'Invalid file type. Please upload a valid image.'}), 400
 
     try:
         file_bytes = np.frombuffer(file.read(), np.uint8)

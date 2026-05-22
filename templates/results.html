@@ -5,7 +5,18 @@
 {% set growth = results.growth|default({}) %}
 {% set disease_confidences = disease.all_confidences|default({}) %}
 {% set growth_boxes = growth.boxes|default([]) %}
+<section class="main-content">
+    <div class="container" style="padding-bottom: 4rem;">
 
+        <div class="glass-card reveal reveal-fade-up results-card">
+            <div class="section-header" style="margin-bottom: 1.5rem;">
+                <h1 class="results-main-title"></h1>
+                    <i class="fas fa-robot"></i> Analysis Results
+                </h1>
+                <p class="results-subtitle">
+                    Your crop image was analyzed using deep learning models for disease detection and growth stage recognition.
+                </p>
+            </div>
             <!-- Analyzed Image + Bounding Boxes -->
             {% if image_b64 %}
             <div class="result-img-container">
@@ -97,6 +108,95 @@
         </p>
       </div>
 
+
+            <!-- =========================================================
+                Growth Stage Detection UI Improvements
+
+                Refactored the Growth Stage output section to
+                create a cleaner and more organized presentation
+                of YOLOv8 detection results and bounding box data.
+
+                Enhancements Include:
+                - Better content grouping
+                - Modern card-based layout styling
+                - Improved table readability
+                - Consistent spacing across result sections
+                - Better alignment with overall dashboard theme
+            ========================================================= -->
+
+
+            <!-- Growth Stage Detection -->
+            <div class="result-card">
+            <h2 class="results-section-title">
+                <i class="fas fa-seedling"></i> Growth Stage Detection (YOLOv8)
+            </h2>
+            {% if growth.main_class %}
+            <ul class="results-list">
+                <li>
+                    <b>Main Stage:</b>
+                    {{ growth.main_class }}
+                    <span style="color:var(--text-muted);">(Confidence: {{ growth.confidence|default(0)|float|round(2) }})</span>
+                </li>
+            </ul>
+            <table class="results-table reveal-stagger">
+                <tr class="reveal reveal-fade-in">
+                    <th>Stage Class</th>
+                    <th>Confidence</th>
+                    <th>BBox</th>
+                </tr>
+                {% for box in growth_boxes %}
+                <tr class="reveal reveal-fade-in">
+                    <td>{{ box.class_name }}</td>
+                    <td>{{ box.confidence|default(0)|float|round(3) }}</td>
+                    <td class="bbox-cell">
+                        [{{ box.bbox[0]|int }},<br>
+                        {{ box.bbox[1]|int }},<br>
+                        {{ box.bbox[2]|int }},<br>
+                        {{ box.bbox[3]|int }}]
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <p style="margin-bottom: 2rem; color: var(--text-muted);">No cotton growth stage detected.</p>
+            {% endif %}
+            </div>
+{% if weather %}
+<div class="weather-card" style="
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #667eea15, #764ba215);
+    border: 1px solid #dee2e6;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+">
+    <h3 style="margin: 0 0 1rem; color: #343a40; font-size: 1.1rem;">
+        ☁️ Current Weather Conditions
+    </h3>
+ 
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem;">
+ 
+        {% if weather.temperature is not none %}
+        <div class="w-stat" style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+            <div style="font-size: 1.8rem;">🌡️</div>
+            <div style="font-size: 1.3rem; font-weight: 600; color: #e74c3c;">{{ weather.temperature }}°C</div>
+            <div style="font-size: 0.75rem; color: #6c757d;">Temperature</div>
+        </div>
+        {% endif %}
+ 
+        {% if weather.humidity is not none %}
+        <div class="w-stat" style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+            <div style="font-size: 1.8rem;">💧</div>
+            <div style="font-size: 1.3rem; font-weight: 600; color: #3498db;">{{ weather.humidity }}%</div>
+            <div style="font-size: 0.75rem; color: #6c757d;">Humidity</div>
+        </div>
+        {% endif %}
+ 
+        {% if weather.precipitation is not none %}
+        <div class="w-stat" style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+            <div style="font-size: 1.8rem;">🌧️</div>
+            <div style="font-size: 1.3rem; font-weight: 600; color: #2980b9;">{{ weather.precipitation }} mm</div>
+            <div style="font-size: 0.75rem; color: #6c757d;">Precipitation</div>
       <!-- Analyzed Image + Bounding Boxes -->
       {% if image_b64 %}
       <div class="result-img-container" style="position: relative; margin-bottom: 2rem;">

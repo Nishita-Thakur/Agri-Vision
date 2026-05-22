@@ -500,7 +500,7 @@ Special thanks to:
 
 <div align="center">
 
-## ❤️ Made with Passion by neeru24
+## ❤️ Made with Passion by [neeru24](https://github.com/neeru24)
 
 ⭐ If you found this project helpful, consider giving it a star. ⭐
 

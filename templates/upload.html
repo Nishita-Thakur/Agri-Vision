@@ -301,6 +301,46 @@ function useMyLocation() {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+/* MOBILE RESPONSIVE FIXES */
+
+@media (max-width: 768px) {
+
+    .loading-panel {
+        width: 90%;
+        padding: 20px;
+        border-radius: 14px;
+    }
+
+    .loading-panel p {
+        font-size: 0.9rem;
+    }
+
+    .upload-area {
+        padding: 1.5rem !important;
+    }
+
+    .upload-area p {
+        font-size: 0.85rem !important;
+    }
+
+    .upload-card {
+        padding: 1rem;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .tip-card,
+    .help-card {
+        width: 100%;
+    }
+
+    .action-btn {
+        width: 100%;
+    }
+}
 </style>
 
 <script>
@@ -524,6 +564,22 @@ uploadArea.addEventListener('drop', (e) => {
         previewImage(fileInput);
     }
 });
+
+
+document.querySelector('form').addEventListener('submit', (event)=>{
+
+    document
+      .getElementById('loadingOverlay')
+      .classList.remove('hidden');
+
+    const submitButton=
+    document.querySelector('.action-btn');
+
+    submitButton.disabled=true;
+
+    submitButton.innerHTML=
+    '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+
 
 document.querySelector('form').addEventListener('submit', async function(event) {
     event.preventDefault();   // stop normal form submission
