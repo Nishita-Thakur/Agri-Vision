@@ -94,8 +94,6 @@ growth_stage_classes = [
     "Matured Cotton Boll",
     "Split Cotton Boll",
 ]
-UNCERTAINTY_THRESHOLD = 0.45
-AMBIGUITY_MARGIN = 0.08
 
 resnet_model = None
 yolo_model = None
@@ -308,81 +306,31 @@ def preprocess_image_for_resnet(image: np.ndarray, target_size: Tuple[int, int] 
 def infer_disease(image: np.ndarray) -> Dict[str, Any]:
     if resnet_model is not None:
         processed = preprocess_image_for_resnet(image)
-
         with torch.no_grad():
             output = resnet_model(processed)
             probs = F.softmax(output, dim=1)
             _, prediction = torch.max(probs, 1)
-
         probs_np = probs.detach().cpu().numpy()
-
+        class_idx = int(prediction.item())
+        healthy_idx = disease_classes.index("Healthy")
+        health_score = float(probs_np[0][healthy_idx]) * 100
     else:
         probs_np = np.random.rand(1, len(disease_classes))
         probs_np = probs_np / probs_np.sum(axis=1, keepdims=True)
+        class_idx = int(np.argmax(probs_np[0]))
+        health_score = float(np.max(probs_np[0])) * 100
 
-    probabilities = probs_np[0]
-
-    # Top predictions
-    sorted_indices = np.argsort(probabilities)[::-1]
-
-    top1_idx = int(sorted_indices[0])
-    top2_idx = int(sorted_indices[1])
-
-    top1_conf = float(probabilities[top1_idx])
-    top2_conf = float(probabilities[top2_idx])
-
-    predicted_class = disease_classes[top1_idx]
-    alternative_class = disease_classes[top2_idx]
-
-    # Existing compatibility score
-    healthy_idx = disease_classes.index("Healthy")
-    health_score = float(probabilities[healthy_idx]) * 100
-
-    # Interpretation layer
-    is_uncertain = top1_conf < UNCERTAINTY_THRESHOLD
-    is_ambiguous = abs(top1_conf - top2_conf) < AMBIGUITY_MARGIN
-
-    interpretation_message = None
-
-    if is_uncertain:
-        interpretation_message = (
-            "The model could not make a confident prediction. "
-            "Please upload a clearer crop image or seek expert review."
-        )
-
-    elif is_ambiguous:
-        interpretation_message = (
-            f"The prediction is somewhat ambiguous between "
-            f"{predicted_class} and {alternative_class}."
-        )
-
-    disease_confidences = {
-        disease_classes[i]: float(probabilities[i])
-        for i in range(len(disease_classes))
-    }
+    disease_confidences = {disease_classes[i]: float(probs_np[0][i]) for i in range(len(disease_classes))}
 
     return {
-        # Existing fields (kept intact)
-        "predicted_class": predicted_class,
-        "predicted_class_idx": top1_idx,
-        "confidence": top1_conf,
+        "predicted_class": disease_classes[class_idx],
+        "predicted_class_idx": class_idx,
+        "confidence": float(probs_np[0][class_idx]),
         "all_confidences": disease_confidences,
         "health_score": health_score,
         "raw": probs_np.tolist(),
-
-        # New interpretation fields
-        "detected_issue": predicted_class,
-        "model_confidence": round(top1_conf * 100, 2),
-
-        "alternative_prediction": {
-            "class": alternative_class,
-            "confidence": round(top2_conf * 100, 2),
-        },
-
-        "is_uncertain": is_uncertain,
-        "is_ambiguous": is_ambiguous,
-        "interpretation_message": interpretation_message,
     }
+
 
 def infer_growth_stage(image: np.ndarray) -> Dict[str, Any]:
     result = {
@@ -475,10 +423,10 @@ def generate_recommendations(
     recs.extend(instr_map.get(dclass, ["Practice general crop hygiene."]))
 
     if disease_result["health_score"] < 50:
-        recs.append("Consult an agricultural expert urgently for low health score.")
-        recs.append("Consult an agricultural expert if symptoms persist.")
+      recs.append("Consult an agricultural expert urgently for low health score.")
+      recs.append("Consult an agricultural expert if symptoms persist.")
     elif disease_result["health_score"] < 70:
-        recs.append("Increase frequency of crop monitoring based on moderate health.")  
+      recs.append("Increase frequency of crop monitoring based on moderate health.")
 
     gmain = growth_result.get("main_class", None)
     grow_map = {
@@ -507,6 +455,42 @@ def generate_recommendations(
         recs.extend(generate_weather_recommendations(weather))
 
     return recs[:6]
+
+
+def fetch_weather_for_location(
+    lat: Optional[float] = None,
+    lon: Optional[float] = None,
+    city: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    if lat is not None and lon is not None:
+        owm_key = os.getenv("OPENWEATHER_API_KEY")
+        return get_weather(lat, lon, owm_key)
+
+    if city:
+        geo = geocode_city(city)
+        if geo:
+            owm_key = os.getenv("OPENWEATHER_API_KEY")
+            return get_weather(geo["lat"], geo["lon"], owm_key)
+
+    return None
+
+
+def enrich_results_with_weather(
+    results: Dict[str, Any],
+    lat: Optional[float] = None,
+    lon: Optional[float] = None,
+    city: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    weather = fetch_weather_for_location(lat=lat, lon=lon, city=city)
+
+    if weather and results.get("disease") and results.get("growth"):
+        results["recommendations"] = (
+            results.get("recommendations", [])
+            + generate_weather_recommendations(weather)
+        )[:6]
+        results["weather"] = weather
+
+    return weather
 
 
 def generate_farmer_insights(disease_result: Dict[str, Any], growth_result: Dict[str, Any]) -> list[str]:
@@ -790,20 +774,7 @@ def analyze():
             lat = request.form.get("lat", type=float)
             lon = request.form.get("lon", type=float)
             city = request.form.get("city", type=str)
-            weather = None
-
-            if lat is not None and lon is not None:
-                owm_key = os.getenv("OPENWEATHER_API_KEY")
-                weather = get_weather(lat, lon, owm_key)
-            elif city:
-                geo = geocode_city(city)
-                if geo:
-                    owm_key = os.getenv("OPENWEATHER_API_KEY")
-                    weather = get_weather(geo["lat"], geo["lon"], owm_key)
-
-            if weather and results.get("disease") and results.get("growth"):
-                results["recommendations"] = (results.get("recommendations", []) + generate_weather_recommendations(weather))[:6]
-                results["weather"] = weather
+            weather = enrich_results_with_weather(results, lat=lat, lon=lon, city=city)
 
             if results.get("error"):
                 raise ValueError(results["error"])
@@ -909,19 +880,9 @@ def demo():
         "predicted_class": "Healthy",
         "predicted_class_idx": 5,
         "confidence": example_disease_probs[5],
-        "model_confidence": round(example_disease_probs[5] * 100, 2),
-        "detected_issue": "Healthy",
-        "all_confidences": {
-            disease_classes[i]: example_disease_probs[i]
-            for i in range(len(disease_classes))
-        },
+        "all_confidences": {disease_classes[i]: example_disease_probs[i] for i in range(len(disease_classes))},
         "health_score": 65.0,
         "raw": [example_disease_probs],
-
-        # add missing UI-safe fields
-        "is_uncertain": False,
-        "is_ambiguous": False,
-        "interpretation_message": "Healthy crop detected with moderate confidence."
     }
     demo_growth_boxes = [
         {"class_id": 3, "class_name": "Matured Cotton Boll", "confidence": 0.91, "bbox": [120, 80, 210, 155]},
@@ -1067,6 +1028,9 @@ def api_analyze():
 
     try:
         file_bytes = np.frombuffer(file.read(), np.uint8)
+        lat = request.form.get("lat", type=float)
+        lon = request.form.get("lon", type=float)
+        city = request.form.get("city", type=str)
 
         if is_pytest_mode():
             image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
@@ -1076,6 +1040,8 @@ def api_analyze():
             image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             compressed_rgb = resize_image(image_rgb, MAX_INFERENCE_DIMENSION)
             results = analyze_image(compressed_rgb)
+            enrich_results_with_weather(results, lat=lat, lon=lon, city=city)
+
             if results.get("error"):
                 return jsonify({"error": results["error"]}), 400
 
@@ -1083,7 +1049,7 @@ def api_analyze():
 
         from celery_worker import process_inference_task
 
-        task = process_inference_task.delay(file_bytes.tolist())
+        task = process_inference_task.delay(file_bytes.tolist(), lat, lon, city)
         return jsonify(
             {
                 "status": "processing",
@@ -1182,18 +1148,13 @@ def api_analyze_stream():
             return
 
         try:
-            results = {
-                "disease": disease,
-                "growth": growth,
-                "recommendations": generate_recommendations(disease, growth),
-                "error": None,
-            }
-
             if growth.get("main_class") is None:
-                results["warnings"] = [
-                    "Growth stage could not be confidently detected.",
-                    "Disease analysis is still provided based on the uploaded crop image."
-                ]
+                results = {
+                    "error": "No cotton plant detected",
+                    "disease": None,
+                    "growth": growth,
+                    "recommendations": ["Please upload a valid cotton crop image."],
+                }
             else:
                 results = {
                     "disease": disease,

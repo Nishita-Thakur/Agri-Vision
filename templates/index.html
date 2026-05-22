@@ -115,107 +115,68 @@
     <div class="print-frame no-print"></div>
 
     <!-- Navigation -->
- add-active-navbar-highlight-effect
-<nav class="navbar" id="navbar">
-    <div class="nav-container">
-        <a href="/" class="nav-brand">
-            <i class="fas fa-seedling"></i>
-            <span>Agri-Vision</span>
-        </a>
-
-        <ul class="nav-menu">
-
-            <li>
-                <a href="/"
-                   class="nav-link {% if request.path == '/' %}active-nav{% endif %}">
-                   Home
-                </a>
-            </li>
-
-            <li>
-                <a href="/analyze"
-                   class="nav-link {% if request.path == '/analyze' %}active-nav{% endif %}">
-                   Analyze
-                </a>
-            </li>
-
-            <li>
-                <a href="/comparison"
-                   class="nav-link {% if request.path == '/comparison' %}active-nav{% endif %}">
-                   Field Comparison
-                </a>
-            </li>
-
-            <li>
-                <a href="/demo"
-                   class="nav-link {% if request.path == '/demo' %}active-nav{% endif %}">
-                   Demo
-                </a>
-            </li>
-
-            <li>
-                <a href="/tutorials"
-                   class="nav-link {% if request.path == '/tutorials' %}active-nav{% endif %}">
-                   Tutorials
-                </a>
-            </li>
-
-            <li>
-                <a href="/stories"
-                   class="nav-link {% if request.path == '/stories' %}active-nav{% endif %}">
-                   Stories
-                </a>
-            </li>
-
-            <li>
-                <a href="/support"
-                   class="nav-link {% if request.path == '/support' %}active-nav{% endif %}">
-                   Support
-                </a>
-            </li>
-
-            <li>
-                <button id="theme-toggle"
-                        class="theme-toggle-btn"
-                        aria-label="Toggle dark mode">
-                    <i class="fas fa-moon"></i>
-                </button>
-            </li>
-
-            <li>
-                <a href="/analyze" class="btn btn-primary">
-                    Get Started
-                </a>
-            </li>
-
-        </ul>
-    </div>
-</nav>
-=======
     <nav class="navbar" id="navbar">
         <div class="nav-container">
             <a href="/" class="nav-brand">
                 <i class="fas fa-seedling"></i>
                 <span>Agri-Vision</span>
             </a>
-            <ul class="nav-menu">
-                <li><a href="/">Home</a></li>
-                <li><a href="/analyze">Analyze</a></li>
-                <li><a href="/comparison">Field Comparison</a></li>
 
-                <li><a href="/demo">Demo</a></li>
-                <li><a href="/tutorials">Tutorials</a></li>
-                <li><a href="/stories">Stories</a></li>
+            <ul class="nav-menu">
+                <li>
+                    <a href="/" class="nav-link {% if request.path == '/' %}active-nav{% endif %}">
+                        Home
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/analyze" class="nav-link {% if request.path == '/analyze' %}active-nav{% endif %}">
+                        Analyze
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/comparison" class="nav-link {% if request.path == '/comparison' %}active-nav{% endif %}">
+                        Field Comparison
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/demo" class="nav-link {% if request.path == '/demo' %}active-nav{% endif %}">
+                        Demo
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/tutorials" class="nav-link {% if request.path == '/tutorials' %}active-nav{% endif %}">
+                        Tutorials
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/stories" class="nav-link {% if request.path == '/stories' %}active-nav{% endif %}">
+                        Stories
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/support" class="nav-link {% if request.path == '/support' %}active-nav{% endif %}">
+                        Support
+                    </a>
+                </li>
+
                 <li>
                     <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle dark mode">
                         <i class="fas fa-moon"></i>
                     </button>
                 </li>
-                <li><a href="/analyze" class="btn btn-primary">Get Started</a></li>
+
+                <li>
+                    <a href="/analyze" class="btn btn-primary">Get Started</a>
+                </li>
             </ul>
         </div>
     </nav>
- main
 
     <!-- Main Content -->
     <main>
@@ -252,22 +213,22 @@
                             AI-DRIVEN COTTON INTEGRATION
                         </span>
                     </div>
-                
+
                     <h1 class="typewriter">
                         <span class="line1">AI-Powered</span>
                         <span class="line2">Cotton Crop Intelligence</span>
                     </h1>
-                
+
                     <p>
                         Analyze crop maturity, detect plant health issues, and optimize
                         harvest timing using smart real-time deep learning analytics.
                     </p>
-                
+
                     <div class="hero-cta">
                         <a href="/analyze" class="btn btn-primary">
                             <i class="fas fa-camera"></i> Analyze Image
                         </a>
-                       
+
                         <a href="/demo" class="btn btn-secondary">
                             <i class="fas fa-play-circle"></i> View Demo
                         </a>
@@ -484,7 +445,7 @@
             updateThemeIcon();
             themeToggleBtn.addEventListener('click', () => {
                 const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-                
+
                 if (!isDark) {
                     document.documentElement.setAttribute('data-theme', 'dark');
                     localStorage.setItem('theme', 'dark');
@@ -542,7 +503,7 @@
 
             // Setup the Three.js 3D rendering scene
             const scene = new THREE.Scene();
-            
+
             // Setup camera positioned to fit the globe beautifully
             const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
             camera.position.set(0, 0, 8.5);
@@ -606,7 +567,7 @@
                 dotPositions[i*3+2] = z * globeRadius;
             }
             dotGeo.setAttribute('position', new THREE.BufferAttribute(dotPositions, 3));
-            
+
             // Create a soft radial gradient canvas for glowing dots
             const pCanvas = document.createElement('canvas');
             pCanvas.width = 16; pCanvas.height = 16;
@@ -680,7 +641,7 @@
 
             farms.forEach((farm) => {
                 const pos = latLongToVector3(farm.lat, farm.lon, globeRadius);
-                
+
                 // Create coordinate beacon sphere
                 const sphereGeo = new THREE.SphereGeometry(0.08, 12, 12);
                 const sphereMat = new THREE.MeshBasicMaterial({ color: colors.beaconColor });
@@ -730,7 +691,7 @@
                 const curve = new THREE.QuadraticBezierCurve3(p1, ctrlPos, p2);
                 const pts = curve.getPoints(24);
                 const arcGeo = new THREE.BufferGeometry().setFromPoints(pts);
-                
+
                 const arcMat = new THREE.LineBasicMaterial({
                     color: colors.arcColor,
                     transparent: true,
@@ -809,13 +770,13 @@
                 if (isDragging) {
                     const deltaX = e.clientX - prevMousePos.x;
                     const deltaY = e.clientY - prevMousePos.y;
-                    
+
                     globeGroup.rotation.y += deltaX * 0.006;
                     globeGroup.rotation.x += deltaY * 0.006;
-                    
+
                     // Limit vertical rotation to prevent flipping upside down
                     globeGroup.rotation.x = Math.max(-Math.PI/2.5, Math.min(Math.PI/2.5, globeGroup.rotation.x));
-                    
+
                     prevMousePos = { x: e.clientX, y: e.clientY };
                     userInteractionTimeout = Date.now() + 8000;
                 } else {
@@ -833,7 +794,7 @@
             // Sync 3D telemetry status to HTML panels
             function syncHtmlDashboard() {
                 activeFarm = farms[activeFarmIndex];
-                
+
                 // Update active farm metrics and text
                 const fCard = document.getElementById('telemetry-farm-card');
                 const fTitle = document.getElementById('telemetry-farm-title');
@@ -858,7 +819,7 @@
                 if (fYield) fYield.innerHTML = `<i class="fas fa-chart-bar"></i> ${activeFarm.yield} | <span style="color:var(--emerald-green);font-weight:700;">${activeFarm.moisture}</span>`;
                 if (sTitle) sTitle.textContent = activeFarm.country + " Uplink";
                 if (sSub) sSub.textContent = activeFarm.ping;
-                
+
                 if (sIcon) {
                     sIcon.className = `fas ${activeFarm.icon} telemetry-icon-spin`;
                 }
@@ -870,7 +831,7 @@
             // Update Three.js element colors to match site theme
             function updateThreeTheme() {
                 colors = getThemeColors();
-                
+
                 // Smooth light transition based on theme setting
                 ambientLight.intensity = colors.isDark ? 0.4 : 0.85;
                 dotMat.color.setHex(colors.gridColor);
@@ -972,65 +933,65 @@
     </script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-        
+
             const container = document.querySelector(".trail-container");
-        
+
             const dots = [];
             const totalDots = 15;
-        
+
             let mouseX = 0;
             let mouseY = 0;
-        
+
             // Create dots
             for (let i = 0; i < totalDots; i++) {
-            
+
                 const dot = document.createElement("div");
                 dot.classList.add("trail-dot");
-            
+
                 container.appendChild(dot);
-            
+
                 dots.push({
                     el: dot,
                     x: 0,
                     y: 0
                 });
             }
-        
+
             // Mouse movement
             document.addEventListener("mousemove", (e) => {
                 mouseX = e.clientX;
                 mouseY = e.clientY;
             });
-        
+
             // Animate
             function animate() {
-            
+
                 let x = mouseX;
                 let y = mouseY;
-            
+
                 dots.forEach((dot, index) => {
-                
+
                     dot.x += (x - dot.x) * 0.35;
                     dot.y += (y - dot.y) * 0.35;
-                
+
                     dot.el.style.left = dot.x + "px";
                     dot.el.style.top = dot.y + "px";
-                
+
                     // Smaller trailing dots
                     const scale = (totalDots - index) / totalDots;
-                
+
                     dot.el.style.transform =
                         `translate(-50%, -50%) scale(${scale})`;
-                
+
                     dot.el.style.opacity = scale;
-                
+
                     x = dot.x;
                     y = dot.y;
                 });
-            
+
                 requestAnimationFrame(animate);
             }
-        
+
             animate();
         });
         </script>

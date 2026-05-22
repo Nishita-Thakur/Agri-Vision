@@ -12,9 +12,9 @@ celery = Celery(
 
 
 @celery.task(bind=True)
-def process_inference_task(self, image_bytes_list):
+def process_inference_task(self, image_bytes_list, lat=None, lon=None, city=None):
     # Import inside task to fix circular import
-    from app import analyze_image
+    from app import analyze_image, enrich_results_with_weather
 
     file_bytes = np.array(image_bytes_list, dtype=np.uint8)
     image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
@@ -22,4 +22,6 @@ def process_inference_task(self, image_bytes_list):
         return {"error": "Invalid image"}
 
     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    return analyze_image(image_rgb)
+    results = analyze_image(image_rgb)
+    enrich_results_with_weather(results, lat=lat, lon=lon, city=city)
+    return results
