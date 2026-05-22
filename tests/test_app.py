@@ -495,3 +495,43 @@ def test_post_api_analyze_exception(client, monkeypatch, valid_image):
     res_data = json.loads(resp.data)
     assert "error" in res_data
     assert "Mock API error" in res_data["error"]
+
+
+def test_generate_mock_heatmap():
+    dummy_img = np.zeros((100, 100, 3), dtype=np.uint8)
+    heatmap = app.generate_mock_heatmap(dummy_img)
+    assert heatmap.shape == (100, 100)
+    assert heatmap.min() >= 0.0
+    assert heatmap.max() <= 1.0
+
+
+def test_apply_heatmap_on_image():
+    dummy_img = np.zeros((100, 100, 3), dtype=np.uint8)
+    dummy_heatmap = np.ones((100, 100), dtype=np.float32)
+    blended = app.apply_heatmap_on_image(dummy_img, dummy_heatmap)
+    assert blended.shape == (100, 100, 3)
+    assert blended.dtype == np.uint8
+
+
+def test_gradcam_class_initialization():
+    class DummyModel(torch.nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.conv = torch.nn.Conv2d(3, 10, kernel_size=3, padding=1)
+            self.fc = torch.nn.Linear(10, 8)
+        def forward(self, x):
+            x = self.conv(x)
+            x = torch.mean(x, dim=[2, 3])
+            return self.fc(x)
+
+    model = DummyModel()
+    gradcam = app.GradCAM(model, model.conv)
+    assert gradcam.model == model
+    assert gradcam.target_layer == model.conv
+
+    input_tensor = torch.randn(1, 3, 224, 224)
+    orig_img = np.zeros((224, 224, 3), dtype=np.uint8)
+    res = gradcam(input_tensor, target_class_idx=2, original_image_rgb=orig_img)
+    assert res is not None
+    assert res.shape == (224, 224, 3)
+

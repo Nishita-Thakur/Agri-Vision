@@ -27,6 +27,15 @@
     
     /* Accent & Utility */
     --ai-blue: #4A90E2;
+    --success-bg: rgba(46, 139, 87, 0.1);
+    --success-text: #1b4332;
+    --success-border: rgba(46, 139, 87, 0.2);
+    --error-bg: rgba(220, 53, 69, 0.1);
+    --error-text: #721c24;
+    --error-border: rgba(220, 53, 69, 0.2);
+    --info-bg: rgba(74, 144, 226, 0.1);
+    --info-text: #0c5460;
+    --info-border: rgba(74, 144, 226, 0.2);
     --glass-bg: rgba(255, 255, 255, 0.65);
     --glass-border: rgba(255, 255, 255, 0.4);
     --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
@@ -87,6 +96,15 @@
 
     /* Theme override fixes */
     --warm-earth: #BCAAA4; /* High contrast warm-sand instead of dark-brown */
+    --success-bg: rgba(92, 209, 139, 0.15);
+    --success-text: #80ffb2;
+    --success-border: rgba(92, 209, 139, 0.3);
+    --error-bg: rgba(255, 107, 107, 0.15);
+    --error-text: #ff8e8e;
+    --error-border: rgba(255, 107, 107, 0.3);
+    --info-bg: rgba(100, 181, 246, 0.15);
+    --info-text: #90caf9;
+    --info-border: rgba(100, 181, 246, 0.3);
       /* High contrast deep-green-black */
     --footer-text: #E0EAE2;
     --footer-muted: rgba(224, 234, 226, 0.6);
@@ -114,7 +132,35 @@ body {
     font-size: 15px;
     transition: background-color 0.4s ease, color 0.4s ease;
 }
+/* Keep default cursor */
+body {
+    cursor: default;
+}
 
+/* Trail dots */
+.trail-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    pointer-events: none;
+    z-index: 99999;
+
+    background: #4ade80;
+
+    box-shadow:
+        0 0 10px #4ade80,
+        0 0 20px #4ade80,
+        0 0 40px rgba(74, 222, 128, 0.7);
+
+    transform: translate(-50%, -50%);
+
+    opacity: 0.8;
+}
 .text-center {
     text-align: center;
 }
@@ -151,7 +197,7 @@ body {
 }
 
 .main-content {
-    padding-top: 6.5rem; /* Space for the floating navbar */
+    padding-top: 120px; /* Space for the floating navbar */
 }
 
 /* Glassmorphism Utility */
@@ -205,7 +251,69 @@ body {
         max-width: 30%;
     }
 }
+.typewriter {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    line-height: 1.1;
+}
 
+.typewriter span {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: 3px solid #67e8f9;
+}
+
+/* First Line */
+.typewriter .line1 {
+    width: 0;
+    animation:
+        typing1 2s steps(14) forwards,
+        blink .7s infinite;
+    font-size: 4rem;
+    font-weight: 800;
+    color: #f5f5f5;
+}
+
+/* Second Line */
+.typewriter .line2 {
+    width: 0;
+    animation:
+        typing2 3s steps(25) forwards 2.1s,
+        blink .7s infinite;
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, #4ade80, #67e8f9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Typing animations */
+@keyframes typing1 {
+    from { width: 0 }
+    to { width: 8ch }
+}
+
+@keyframes typing2 {
+    from { width: 0 }
+    to { width: 16ch }
+}
+
+/* Cursor blink */
+@keyframes blink {
+    50% {
+        border-color: transparent;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .typewriter .line1,
+    .typewriter .line2 {
+        font-size: 2.5rem;
+    }
+}
 .card {
     background: var(--card-bg);
     color: var(--text-main);
@@ -557,7 +665,8 @@ body {
 .hero-container {
     position: relative;
     max-width: 1100px;
-    margin: 0 auto;
+    /* margin: 0 auto; */
+    margin-left: 270px;
     display: grid;
     grid-template-columns: 1.15fr 0.85fr;
     gap: 4rem;
@@ -744,6 +853,8 @@ body {
     border: 1px solid var(--card-border);
     box-shadow: var(--card-shadow);
     transition: var(--transition-smooth);
+    height:350px;
+    width:500px;
 }
 
 .scanner-container:hover {
@@ -771,6 +882,7 @@ body {
     border: 1px solid rgba(46, 139, 87, 0.15);
     box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
     transition: background 0.4s ease, border-color 0.4s ease;
+    /* margin-right: 50px; */
 }
 
 [data-theme="dark"] .canvas-3d-wrapper {
@@ -996,7 +1108,7 @@ body {
 .floating-telemetry-2 {
     position: absolute;
     top: -25px;
-    right: -20px;
+    right: 150px;
     background: var(--card-bg);
     padding: 0.8rem 1.2rem;
     border-radius: 16px;
@@ -1108,12 +1220,36 @@ body {
     min-height: 220px; /* More compact */
 }
 
+/* =========================================================
+   Enhanced Interactive Hover Animation
+   Creates stronger depth, floating motion,
+   glowing borders, and immersive UI feedback.
+========================================================= */
+
 .feature-card:hover {
-    transform: translateY(-8px);
-    background: var(--card-bg);
-    box-shadow: var(--hover-shadow);
-    border-color: rgba(46, 139, 87, 0.08);
+    transform:
+        translateY(-18px)
+        scale(1.04);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(20, 35, 28, 0.96),
+            rgba(10, 18, 14, 0.98)
+        );
+
+    border-color:
+        rgba(76, 255, 153, 0.35);
+
+    box-shadow:
+        0 25px 60px rgba(0,0,0,0.35),
+        0 0 30px rgba(76,255,153,0.18),
+        0 0 60px rgba(76,255,153,0.08);
+
+    cursor: pointer;
 }
+
+
 
 .feature-icon-wrapper {
     width: 55px; /* Reduced from 70px */
@@ -1127,6 +1263,128 @@ body {
     color: var(--emerald-green);
     margin-bottom: 1.5rem;
     transition: var(--transition-smooth);
+}
+/* =========================================================
+   Floating Icon Hover Animation
+========================================================= */
+
+.feature-card:hover .feature-icon-wrapper {
+    transform:
+        scale(1.15)
+        rotate(6deg);
+
+    box-shadow:
+        0 0 18px rgba(76,255,153,0.25);
+
+    background:
+        rgba(76,255,153,0.12);
+}
+
+/* =========================================================
+   UI Enhancement Module:
+   Precision Farming Interactive Feature Cards
+
+   Purpose:
+   This styling enhancement modernizes the homepage
+   feature-card system by introducing smoother
+   animations, hover transitions, visual elevation,
+   glowing accents, and interactive feedback.
+
+   Improvements Included:
+   - Smooth hover animations
+   - Dynamic elevation effects
+   - Neon accent glow
+   - Animated top border sweep
+   - Icon interaction animations
+   - Better visual hierarchy
+   - Improved futuristic UI consistency
+   - Enhanced user engagement
+
+   These changes improve the overall user experience
+   while maintaining the Agri-Vision futuristic
+   design language.
+========================================================= */
+
+.feature-card {
+    position: relative;
+    overflow: hidden;
+
+    transition:
+        transform 0.4s ease,
+        box-shadow 0.4s ease,
+        border-color 0.4s ease,
+        background 0.4s ease;
+
+    will-change: transform;
+}
+
+/* =========================================================
+   Interactive Hover Effects
+========================================================= */
+
+.feature-card:hover {
+    transform: translateY(-12px) scale(1.02);
+
+    box-shadow:
+        0 20px 45px rgba(0,0,0,0.28),
+        0 0 25px rgba(76,255,153,0.12);
+}
+
+/* =========================================================
+   Animated Accent Border Effect
+========================================================= */
+
+.feature-card::before {
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+    left: -100%;
+
+    width: 100%;
+    height: 4px;
+
+    background: linear-gradient(
+        90deg,
+        transparent,
+        #4cff99,
+        transparent
+    );
+
+    transition: 0.6s ease;
+}
+
+.feature-card:hover::before {
+    left: 100%;
+}
+
+/* =========================================================
+   Feature Icon Animation Effects
+========================================================= */
+
+.feature-card i {
+    transition:
+        transform 0.4s ease,
+        color 0.4s ease;
+}
+
+.feature-card:hover i {
+    transform: scale(1.18) rotate(4deg);
+
+    color: #4cff99;
+}
+
+/* =========================================================
+   Typography Hover Improvements
+========================================================= */
+
+.feature-card h3 {
+    transition: color 0.3s ease;
+}
+
+.feature-card:hover h3 {
+    color: #4cff99;
 }
 
 .feature-card:hover .feature-icon-wrapper {
@@ -1194,6 +1452,77 @@ body {
     font-size: 0.9rem;
     font-weight: 600;
     color: var(--deep-forest);
+}
+
+
+/* =========================================================
+   Enhanced Results Page Spacing & Visual Hierarchy
+   Improves readability, section separation, and layout flow
+========================================================= */
+
+.results-card {
+    padding: 2.5rem;
+    gap: 2rem;
+}
+
+.result-card {
+    margin-top: 2rem;
+    padding: 2rem;
+    border-radius: 24px;
+}
+
+.results-section-title {
+    margin-bottom: 1.4rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.results-list li {
+    margin-bottom: 1rem;
+    line-height: 1.8;
+}
+
+.results-table {
+    margin-top: 1.5rem;
+    overflow: hidden;
+    border-radius: 18px;
+}
+
+.results-table th,
+.results-table td {
+    padding: 1rem 1.2rem;
+}
+
+.results-footer {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.results-details {
+    margin-top: 2rem;
+}
+
+.results-pre {
+    padding: 1.5rem;
+    border-radius: 16px;
+    line-height: 1.6;
+}
+
+/* Better spacing for mobile devices */
+@media (max-width: 768px) {
+
+    .results-card {
+        padding: 1.4rem;
+    }
+
+    .result-card {
+        padding: 1.4rem;
+    }
+
+    .results-section-title {
+        font-size: 1.1rem;
+    }
 }
 
 /* Compact Footer */
@@ -1373,6 +1702,132 @@ body {
     color: var(--emerald-green);
     margin-right: 1rem;
     flex-shrink: 0;
+}
+
+
+/* =========================================================
+   Demo Analysis Visual Hierarchy Enhancement System
+   ---------------------------------------------------------
+   This module focuses on improving the readability and
+   visual organization of AI-generated crop analysis data.
+
+   Goals:
+   - Improve user attention flow
+   - Create better spacing rhythm
+   - Enhance card distinction
+   - Improve mobile readability
+   - Modernize analytics presentation
+   - Maintain accessibility standards
+
+   Designed specifically for:
+   - Disease prediction cards
+   - Confidence tables
+   - Recommendation sections
+   - Crop growth analysis panels
+   ========================================================= */
+
+/* =========================================================
+   Enhanced Demo Analysis Result Card UI Improvements
+   =========================================================
+
+   This styling enhancement improves the visual hierarchy,
+   spacing, readability, and modern appearance of the
+   analysis result cards shown in the Demo page.
+
+   Improvements Included:
+   - Better card spacing
+   - Improved section separation
+   - Softer shadows and hover effects
+   - Enhanced typography readability
+   - Better responsive behavior
+   - Cleaner visual hierarchy
+   - Modern glassmorphism-inspired UI polish
+   - Improved table spacing and structure
+   - Smoother transition animations
+
+   These updates improve user engagement while maintaining
+   the existing Agri-Vision design system consistency.
+   ========================================================= */
+
+.result-card,
+.analysis-card,
+.demo-card {
+    border-radius: 24px;
+    padding: 2rem;
+    transition: all 0.35s ease;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(93, 211, 139, 0.12);
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.18);
+}
+
+.result-card:hover,
+.analysis-card:hover,
+.demo-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 45px rgba(93, 211, 139, 0.18);
+}
+
+.result-card h2,
+.analysis-card h2,
+.demo-card h2 {
+    margin-bottom: 1rem;
+    letter-spacing: 0.3px;
+}
+
+.result-card p,
+.analysis-card p,
+.demo-card p {
+    line-height: 1.8;
+    opacity: 0.95;
+}
+
+.result-card table,
+.analysis-card table {
+    margin-top: 1.2rem;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.result-card tr,
+.analysis-card tr {
+    transition: background 0.2s ease;
+}
+
+.result-card tr:hover,
+.analysis-card tr:hover {
+    background: rgba(93, 211, 139, 0.05);
+}
+
+/* =========================================================
+   Mobile Responsiveness Enhancements
+   ========================================================= */
+
+@media (max-width: 768px) {
+    .result-card,
+    .analysis-card,
+    .demo-card {
+        padding: 1.4rem;
+        border-radius: 18px;
+    }
+
+    .result-card h2,
+    .analysis-card h2,
+    .demo-card h2 {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .result-card,
+    .analysis-card,
+    .demo-card {
+        padding: 1rem;
+    }
+
+    .result-card table,
+    .analysis-card table {
+        font-size: 0.9rem;
+    }
 }
 
 /* Field Photo Comparison */
@@ -2063,16 +2518,6 @@ body {
     border-radius: 13px;
 }
 
-.results-table {
-    margin-bottom: 2.2rem;
-    min-width: 60%;
-    border-collapse: collapse;
-    border-radius: 12px;
-    overflow: hidden;
-    color: var(--text-main);
-    box-shadow: var(--glass-shadow);
-}
-
 .results-table th {
     background: var(--table-header-bg);
     padding: 12px;
@@ -2397,6 +2842,115 @@ fix-stories-card-alignment
 .stories-grid .card {
     width: 100%;
 
+
+    /* =========================================================
+   Advanced Stories Page Responsiveness Improvements
+
+   This enhancement improves:
+   - Card alignment consistency
+   - Responsive grid spacing
+   - Mobile readability
+   - Hover interaction smoothness
+   - Layout adaptability for smaller screens
+   - Visual balance across device sizes
+
+   The goal is to create a cleaner,
+   more modern, and responsive stories page
+   experience while preserving the Agri-Vision
+   futuristic UI design language.
+========================================================= */
+
+/* Smooth interaction animation improvements */
+
+.stories-grid .card {
+    will-change: transform;
+
+    width: 100%;
+}
+
+/* Improved hover interaction */
+
+.stories-grid .card:hover {
+    transform:
+        translateY(-10px)
+        scale(1.02);
+
+    box-shadow:
+        0 18px 40px rgba(0,0,0,0.28),
+        0 0 20px rgba(76,255,153,0.10);
+
+    cursor: pointer;
+}
+
+/* Responsive container spacing improvements */
+
+.stories-header {
+    max-width: 720px;
+
+    margin-inline: auto;
+}
+
+.stories-grid {
+    row-gap: 2rem;
+}
+
+/* =========================================================
+   Tablet Responsive Optimization
+========================================================= */
+
+@media (max-width: 992px) {
+
+    .stories-grid {
+        gap: 1.8rem;
+    }
+
+    .stories-grid .card {
+        min-height: 100%;
+    }
+}
+
+/* =========================================================
+   Mobile Responsive Optimization
+========================================================= */
+
+@media (max-width: 768px) {
+
+    .stories-grid {
+        grid-template-columns: 1fr;
+
+        gap: 1.5rem;
+    }
+
+    .stories-grid .card {
+        border-radius: 20px;
+
+        padding: 1.5rem;
+    }
+
+    .stories-grid .card-body {
+        gap: 1rem;
+    }
+}
+
+/* =========================================================
+   Small Device Readability Improvements
+========================================================= */
+
+@media (max-width: 480px) {
+
+    .stories-grid .card h3 {
+        font-size: 1.2rem;
+    }
+
+    .stories-grid .card p {
+        line-height: 1.7;
+    }
+
+    .stories-grid {
+        gap: 1.2rem;
+    }
+}
+
 /* ==========================================================
    Enhanced Demo Results Page UI/UX Styling
    ----------------------------------------------------------
@@ -2417,7 +2971,7 @@ fix-stories-card-alignment
 ========================================================== */
 
 /* Enhanced Results UI */
-
+}
 .result-card {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255,255,255,0.06);
@@ -2508,5 +3062,658 @@ fix-stories-card-alignment
         #6ddc90
     );
     box-shadow: 0 0 15px rgba(93,211,139,0.45);
+ add-active-navbar-highlight-effect
  main
 }
+
+/* =========================================================
+   Active Navbar Highlight Styling
+   Improves navigation clarity and user orientation
+   across Agri-Vision pages
+========================================================= */
+
+.nav-link {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+/* Active page highlight */
+.active-nav {
+    color: #57e389 !important;
+    font-weight: 700;
+}
+
+/* Animated underline effect */
+.active-nav::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    width: 100%;
+    height: 2px;
+    background: #57e389;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(87, 227, 137, 0.6);
+}
+
+/* Hover improvement for navbar links */
+.nav-link:hover {
+    color: #57e389;
+}
+
+/* =========================================================
+   ADVANCED NAVIGATION EXPERIENCE ENHANCEMENT
+   =========================================================
+   This styling block was added to improve the overall
+   user navigation experience inside the Agri-Vision
+   platform interface.
+
+   The previous navbar implementation worked correctly,
+   but lacked visual indication for the currently active
+   page. This could create confusion for users navigating
+   between different agricultural analysis modules.
+
+   Improvements introduced in this enhancement:
+
+   ✔ Active page highlighting
+   ✔ Smooth hover transitions
+   ✔ Modern glowing underline animation
+   ✔ Better visual hierarchy
+   ✔ Improved accessibility and orientation
+   ✔ Consistent futuristic UI appearance
+   ✔ Enhanced dark-theme compatibility
+   ✔ Better responsiveness for different screen sizes
+   ✔ Improved readability for navbar interactions
+   ✔ More professional production-style navigation feel
+
+   Design Goals:
+   ---------------------------------------------------------
+   - Maintain Agri-Vision cyber/agri aesthetic
+   - Keep navbar lightweight and responsive
+   - Improve navigation clarity for users
+   - Add subtle animation without distraction
+   - Match green AI-inspired visual identity
+
+   Technical Notes:
+   ---------------------------------------------------------
+   The active navbar system uses:
+   - pseudo-elements (::after)
+   - transition animations
+   - glow shadows
+   - custom highlight coloring
+   - reusable nav-link utility classes
+
+   Future Expansion Possibilities:
+   ---------------------------------------------------------
+   - Dynamic active page detection using Flask/Jinja
+   - Animated page transition indicators
+   - Gradient underline effects
+   - Mobile navigation active states
+   - Scroll-aware navbar highlighting
+   - Breadcrumb integration
+   - Multi-theme compatibility
+
+   This enhancement contributes toward improving
+   the professional frontend experience of the
+   Agri-Vision AI-powered agricultural platform.
+========================================================= */
+=======
+}
+
+/*  MOBILE RESPONSIVENESS */
+
+@media (max-width: 768px) {
+
+    body {
+        overflow-x: hidden;
+    }
+
+    .container {
+        padding: 1rem;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    p {
+        font-size: 0.95rem;
+    }
+
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+}
+/* MOBILE NAVBAR FIX */
+
+@media (max-width:768px){
+
+    .navbar{
+        position: fixed;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+
+        width: 92%;
+        z-index: 9999;
+
+        padding: 12px 16px;
+        border-radius: 18px;
+
+        background: rgba(255,255,255,.92);
+        backdrop-filter: blur(10px);
+
+        box-shadow: 0 8px 20px rgba(0,0,0,.08);
+
+        overflow: visible;
+    }
+
+    .nav-container{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+
+        flex-wrap:nowrap !important;
+        flex-direction:row !important;
+
+        padding:0 !important;
+    }
+
+    .nav-brand{
+        display:flex;
+        align-items:center;
+        gap:8px;
+
+        min-width:0;
+        overflow:visible;
+    }
+
+    .nav-brand img,
+    .nav-logo{
+        width:28px;
+        height:28px;
+        flex-shrink:0;
+    }
+
+    .nav-brand h1,
+    .nav-brand span{
+        font-size:1.2rem !important;
+        white-space:nowrap;
+        margin:0;
+    }
+
+    .nav-menu{
+        display:none;
+    }
+ /* page spacing under fixed navbar */
+    body{
+        padding-top:85px;
+    }
+
+}
+/* MOBILE UPLOAD AREA FIX*/
+
+@media (max-width: 768px) {
+
+    .upload-area {
+        padding: 1rem !important;
+        min-height: auto;
+    }
+
+    .upload-area i {
+        font-size: 2rem !important;
+    }
+
+    .upload-area p {
+        line-height: 1.4;
+    }
+
+    .glass-card {
+        padding: 1rem !important;
+    }
+
+    .section-header h1 {
+        font-size: 1.8rem !important;
+    }
+
+    .section-header p {
+        font-size: 0.9rem !important;
+    }
+}
+.results-main-title{
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: var(--emerald-green);
+}
+.results-subtitle{
+    font-size: 0.95rem;
+}
+.result-card{
+    margin-top: 2rem;
+    padding: 1.5rem;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(14px);
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.result-card:hover{
+    transform: translateY(-4px);
+    border-color: rgba(46,139,87,0.35);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+.results-table{
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    overflow: hidden;
+    border-radius: 12px;
+    table-layout: fixed;
+}
+
+.results-table th{
+    background: rgba(46,139,87,0.12);
+    padding: 14px;
+    text-align: left;
+}
+
+.results-table td{
+    padding: 12px 14px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.results-table tr:hover{
+    background: rgba(255,255,255,0.03);
+}
+.health-bar{
+    width: 100%;
+    height: 14px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 0.7rem 0;
+}
+
+.health-fill{
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg,#00c853,#69f0ae);
+    box-shadow: 0 0 18px rgba(0,200,83,0.45);
+    transition: width 0.6s ease;
+}
+.result-img{
+    width: 100%;
+    border-radius: 18px;
+    border: 2px solid rgba(46,139,87,0.2);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.18);
+}
+.results-list li{
+    line-height: 1.8;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.container{
+    width: 100%;
+    max-width: 1200px;
+    margin: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    box-sizing: border-box;
+}
+ .results-list{
+    padding-left: 1.2rem;
+    word-break: break-word;
+}
+.bbox-cell{
+    font-size: 0.9rem;
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+/* Smooth Global Transitions */
+* {
+    transition:
+        background-color 0.3s ease,
+        color 0.3s ease,
+        border-color 0.3s ease;
+}
+
+/* Better Mobile Spacing */
+@media (max-width: 768px) {
+
+    section {
+        padding: 3rem 1rem !important;
+    }
+
+    .container,
+    .dashboard-container,
+    .results-container {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+
+    .dashboard-card,
+    .result-card,
+    .glass-card,
+    .feature-card {
+        padding: 1rem !important;
+        border-radius: 16px !important;
+    }
+
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .dashboard-status-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .hero {
+        min-height: auto;
+        padding-top: 7rem;
+    }
+
+    .hero-content h1 {
+        font-size: 1.8rem !important;
+        line-height: 1.3;
+    }
+
+    .hero-content p {
+        font-size: 0.95rem;
+    }
+
+    .hero-cta {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .hero-cta .btn-primary,
+    .hero-cta .btn-secondary {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Better Responsive Grids */
+@media (max-width: 600px) {
+
+    .results-grid,
+    .dashboard-metrics-grid,
+    .probabilities-grid,
+    .stories-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .feature-card,
+    .result-card,
+    .dashboard-card {
+        min-width: 100%;
+    }
+}
+
+/* Responsive Tables */
+.results-table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent Long Text Overflow */
+h1, h2, h3, h4, p, span, a, li {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Prevent Image Overflow */
+img,
+canvas,
+video {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Mobile Floating Elements Fix */
+@media (max-width: 768px) {
+
+    .floating-telemetry-1,
+    .floating-telemetry-2 {
+        position: static;
+        margin-top: 1rem;
+        width: 100%;
+        animation: none;
+    }
+
+    .scanner-container {
+        overflow: hidden;
+    }
+}
+
+/* Skeleton Loading Animation */
+.skeleton {
+    position: relative;
+    overflow: hidden;
+    background: rgba(255,255,255,0.08);
+    border-radius: 12px;
+}
+
+.skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,0.18),
+        transparent
+    );
+    animation: skeleton-loading 1.2s infinite;
+}
+
+@keyframes skeleton-loading {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* Spinner Loader */
+.loader {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255,255,255,0.15);
+    border-top-color: var(--emerald-green);
+    border-radius: 50%;
+    animation: spinLoader 0.8s linear infinite;
+    margin: 2rem auto;
+}
+
+@keyframes spinLoader {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Fade Loading Transition */
+.fade-loading {
+    animation: fadeContent 0.4s ease;
+}
+
+@keyframes fadeContent {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Better Touch Interaction */
+button,
+a,
+.card,
+.btn-primary,
+.btn-secondary {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Mobile Typography Scaling */
+html {
+    font-size: clamp(14px, 1vw, 16px);
+}
+
+/* Reduce Heavy Animations on Mobile */
+@media (max-width: 768px) {
+
+    .blob,
+    .scanner-laser,
+    .mock-bbox,
+    .feature-card:hover,
+    .result-card:hover,
+    .dashboard-card:hover {
+        animation: none !important;
+        transform: none !important;
+    }
+}
+ main
+ improve-footer-responsiveness
+}
+
+/* =========================================================
+   Footer Responsiveness & Spacing Improvements
+   =========================================================
+   This styling enhancement improves the footer layout
+   across tablets, mobile devices, and smaller screens.
+
+   Key improvements included:
+   ---------------------------------------------------------
+   ✔ Better footer spacing
+   ✔ Improved mobile responsiveness
+   ✔ Cleaner stacked layout
+   ✔ Better text readability
+   ✔ Reduced overcrowding
+   ✔ Flexible wrapping behavior
+   ✔ Improved alignment consistency
+   ✔ Enhanced small-screen usability
+   ✔ Better footer navigation visibility
+   ✔ Modern responsive spacing structure
+
+   The previous footer layout appeared slightly compressed
+   on smaller screens and required better spacing behavior
+   for improved readability and accessibility.
+
+   This enhancement ensures the footer maintains
+   Agri-Vision's modern futuristic design language
+   while adapting smoothly across multiple resolutions.
+========================================================= */
+
+/* Footer responsive layout improvements */
+.footer-container {
+    gap: 2rem;
+}
+
+/* Footer links spacing enhancement */
+.footer-links-compact {
+    gap: 1.2rem;
+    flex-wrap: wrap;
+}
+
+/* Better footer bottom alignment */
+.footer-bottom {
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Responsive adjustments for tablets */
+@media (max-width: 768px) {
+
+    .footer-container {
+        padding: 2rem 1.5rem;
+        text-align: center;
+    }
+
+    .footer-links-compact {
+        justify-content: center;
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .footer-social {
+        justify-content: center;
+    }
+}
+
+/* Mobile screen optimization */
+@media (max-width: 480px) {
+
+    .footer-container {
+        padding: 1.5rem 1rem;
+    }
+
+    .footer-links-compact {
+        gap: 0.8rem;
+        font-size: 0.92rem;
+    }
+
+    .footer-title {
+        font-size: 1.4rem;
+    }
+
+    .footer-subtitle {
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    .footer-bottom {
+        gap: 0.7rem;
+    }
+
+    .footer-social {
+        gap: 0.8rem;
+    }
+}
+
+/* =========================================================
+   Additional Footer UI Enhancement Notes
+   =========================================================
+   Future footer improvements may include:
+
+   - Animated footer reveal transitions
+   - Dynamic copyright year logic
+   - Accessibility contrast improvements
+   - Social icon hover glow animations
+   - Multi-column responsive footer grids
+   - Better keyboard navigation visibility
+   - Progressive mobile layout optimization
+   - Advanced glassmorphism footer styling
+   - Sticky responsive footer behavior
+   - Dynamic quick-link organization
+
+   This enhancement contributes toward creating
+   a more production-ready responsive experience
+   for Agri-Vision users across modern devices.
+
+   The footer now behaves more consistently
+   across different viewport dimensions while
+   preserving readability and navigation clarity.
+========================================================= */
+=======
+ main

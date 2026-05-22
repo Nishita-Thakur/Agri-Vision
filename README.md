@@ -105,28 +105,19 @@ Agri-Vision uses deep learning and computer vision techniques to:
 ---
 
 ## Dataset Information
+---
+### For Cotton Crop
 The datasets used for training the Growth Stage Prediction and Crop Disease Classification models were sourced from Roboflow.
 
-### Growth Stage Prediction Dataset -
-https://universe.roboflow.com/p-project-ebvkg/cotton-boll-growth-detection/dataset/5
+### Growth Stage Prediction Dataset (For cotton crop)  
+
+https://universe.roboflow.com/p-project-ebvkg/cotton-boll-growth-detection/dataset/5  
+
 *The above dataset is also having appropriate labels for YOLO model training
 
-### Crop Disease Classification Dataset -
+### Crop Disease Classification Dataset (for cotton crop)  
+
 https://universe.roboflow.com/deep-learning-nygzt/cotton-crop-dieases/browse?queryText=&pageSize=50&startingIndex=0&browseQuery=true
-
-## 🔜 Upcoming: Tomato Crop Support
-
-We are actively working on expanding Agri-Vision to support **Tomato crop analysis**. Planned features include:
-
-- 🍅 Tomato disease detection (Early Blight, Late Blight, Septoria Leaf Spot, Tomato Mosaic Virus)
-- 🌱 Tomato growth stage identification (Seedling, Vegetative, Flowering, Fruit development)
-- 📊 Tomato-specific recommendations
-
-**Dataset references for contributors:**
-- [PlantVillage Tomato Dataset](https://www.kaggle.com/datasets/kaustubhb999/tomatoleaf)
-- [Tomato Disease Detection (Roboflow)](https://universe.roboflow.com/search?q=tomato)
-
-> 💡 **Contributors wanted!** If you're interested in helping build tomato crop models, check out issue [#73](https://github.com/neeru24/Agri-Vision/issues/73)
 
 ## Growth Phases Detected
 
@@ -136,7 +127,7 @@ We are actively working on expanding Agri-Vision to support **Tomato crop analys
 - Matured Cotton Boll
 - Split Cotton Boll
 
----
+
 
 ## Health Issues Identified
 
@@ -150,16 +141,52 @@ We are actively working on expanding Agri-Vision to support **Tomato crop analys
 - Target spot
 
 ---
+### For Tomato Crop
+The datasets used for training the Growth Stage Prediction and Crop Disease Classification models were sourced from Roboflow.
 
+### Growth Stage Prediction Dataset (For tomato crop)  
+
+https://www.kaggle.com/datasets/arjunsudheer326/tomato-plant-stages-dataset
+
+
+### Crop Disease Classification Dataset (for tomato crop)  
+
+https://universe.roboflow.com/deep-learning-nygzt/cotton-crop-dieases/browse?queryText=&pageSize=50&startingIndex=0&browseQuery=true
+
+## Growth Phases Detected
+
+- Early Vegetative
+- Flowering initiation
+
+
+
+## Health Issues Identified
+
+- Early Blight
+- Healthy
+- Late blight
+- Leaf miner
+- Leaf mold
+- Mosaic virus
+- Septoria
+- Spider mites
+- Yellow leaf curl virus
+
+---
 # 🤖 Model Information
-
+---
+## For cotton crop
 ## Growth Stage Prediction Model
-Model Used - YOLOv8  
+Model Used - YOLOv8   
+
 Parameters - ~3M  
-Layers - 73
+
+Layers - 73  
+
 
 ## Crop Disease Classification Model
 Model Used - ResNet50  
+
 Parameters - 25.6M
 
 
@@ -167,20 +194,71 @@ Parameters - 25.6M
 Check training curves and result snapshots inside the `results/` directory.
 
 ## Metrics for YOLOv8 (Growth Stage Prediction)
-mAP50 - 60.06%
-mAP95 - 34.8%
-R - 53.8%
-P - 62.7%
-Inference Time - 3.3ms
+mAP50 - 60.06%  
+
+mAP95 - 34.8%  
+
+R - 53.8%  
+
+P - 62.7%  
+
+Inference Time - 3.3ms  
+
 
 
 ## Metrics for ResNet50 (Cotton Crop Disease Classification)
-Accuracy - 99.83%
-Precision - 99.83%
-Recall - 99.83%
-F1 Score - 99.83%
-ROC AUC - 99.98%
+Accuracy - 99.83%  
 
+Precision - 99.83%  
+
+Recall - 99.83%  
+
+F1 Score - 99.83%  
+
+ROC AUC - 99.98%  
+
+
+---
+## For tomato crop
+## Growth Stage Prediction Model
+Model Used - YOLOv8   
+
+Parameters - ~3M  
+
+Layers - 73  
+
+
+## Crop Disease Classification Model
+Model Used - ResNet50  
+
+Parameters - 25.6M
+
+# 📊 Model Results
+Check training curves and result snapshots inside the `results/` directory.
+
+## Metrics for YOLOv8 (Tomato crop disease prediction)
+mAP50 - 95.4%  
+
+mAP95 - 86.2%  
+
+R - 88.5%  
+
+P - 92.3%  
+
+Inference Time - 1.3ms  
+
+
+
+## Metrics for ResNet50 (Cotton Crop growth stage prediction)
+Accuracy - 100%
+
+Precision - 100% 
+
+Recall - 100% 
+
+F1 Score - 100%  
+
+ 
 ---
 
 
@@ -422,7 +500,7 @@ Special thanks to:
 
 <div align="center">
 
-## ❤️ Made with Passion by neeru24
+## ❤️ Made with Passion by [neeru24](https://github.com/neeru24)
 
 ⭐ If you found this project helpful, consider giving it a star. ⭐
 

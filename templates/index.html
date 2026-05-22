@@ -18,14 +18,180 @@
     </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- PDF.js for PDF to Image conversion -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <!-- Three.js CDN for interactive 3D model simulation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        .chatbot-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 320px;
+            background: var(--bg-card, #ffffff);
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--border-color, #e0e0e0);
+            transition: all 0.3s ease;
+        }
+        .chatbot-header {
+            background: var(--primary-green, #2e8b57);
+            color: #ffffff;
+            padding: 12px 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chatbot-body {
+            height: 380px;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-messages {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: var(--bg-body, #f9f9f9);
+        }
+        .chat-message {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        .ai-message {
+            background: var(--bg-chat-ai, #e8f5e9);
+            color: var(--text-color, #333333);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .user-message {
+            background: var(--primary-green, #2e8b57);
+            color: #ffffff;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-input-container {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid var(--border-color, #e0e0e0);
+            background: var(--bg-card, #ffffff);
+        }
+        .chat-input-container input {
+            flex-grow: 1;
+            border: 1px solid var(--border-color, #e0e0e0);
+            border-radius: 20px;
+            padding: 8px 15px;
+            outline: none;
+            background: transparent;
+            color: var(--text-color, #333333);
+        }
+        .chat-send-btn {
+            background: none;
+            border: none;
+            color: var(--primary-green, #2e8b57);
+            cursor: pointer;
+            padding: 0 10px;
+            font-size: 1.2rem;
+            transition: transform 0.2s;
+        }
+        .chat-send-btn:hover {
+            transform: scale(1.1);
+        }
+    </style>
 </head>
 <body>
     <!-- Professional Print Frame (Only visible in print) -->
     <div class="print-frame no-print"></div>
 
     <!-- Navigation -->
+ add-active-navbar-highlight-effect
+<nav class="navbar" id="navbar">
+    <div class="nav-container">
+        <a href="/" class="nav-brand">
+            <i class="fas fa-seedling"></i>
+            <span>Agri-Vision</span>
+        </a>
+
+        <ul class="nav-menu">
+
+            <li>
+                <a href="/"
+                   class="nav-link {% if request.path == '/' %}active-nav{% endif %}">
+                   Home
+                </a>
+            </li>
+
+            <li>
+                <a href="/analyze"
+                   class="nav-link {% if request.path == '/analyze' %}active-nav{% endif %}">
+                   Analyze
+                </a>
+            </li>
+
+            <li>
+                <a href="/comparison"
+                   class="nav-link {% if request.path == '/comparison' %}active-nav{% endif %}">
+                   Field Comparison
+                </a>
+            </li>
+
+            <li>
+                <a href="/demo"
+                   class="nav-link {% if request.path == '/demo' %}active-nav{% endif %}">
+                   Demo
+                </a>
+            </li>
+
+            <li>
+                <a href="/tutorials"
+                   class="nav-link {% if request.path == '/tutorials' %}active-nav{% endif %}">
+                   Tutorials
+                </a>
+            </li>
+
+            <li>
+                <a href="/stories"
+                   class="nav-link {% if request.path == '/stories' %}active-nav{% endif %}">
+                   Stories
+                </a>
+            </li>
+
+            <li>
+                <a href="/support"
+                   class="nav-link {% if request.path == '/support' %}active-nav{% endif %}">
+                   Support
+                </a>
+            </li>
+
+            <li>
+                <button id="theme-toggle"
+                        class="theme-toggle-btn"
+                        aria-label="Toggle dark mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </li>
+
+            <li>
+                <a href="/analyze" class="btn btn-primary">
+                    Get Started
+                </a>
+            </li>
+
+        </ul>
+    </div>
+</nav>
+=======
     <nav class="navbar" id="navbar">
         <div class="nav-container">
             <a href="/" class="nav-brand">
@@ -36,6 +202,7 @@
                 <li><a href="/">Home</a></li>
                 <li><a href="/analyze">Analyze</a></li>
                 <li><a href="/comparison">Field Comparison</a></li>
+
                 <li><a href="/demo">Demo</a></li>
                 <li><a href="/tutorials">Tutorials</a></li>
                 <li><a href="/stories">Stories</a></li>
@@ -48,6 +215,7 @@
             </ul>
         </div>
     </nav>
+ main
 
     <!-- Main Content -->
     <main>
@@ -84,20 +252,28 @@
                             AI-DRIVEN COTTON INTEGRATION
                         </span>
                     </div>
-                    <h1>
-                        AI-Powered 
-                        <span>Cotton Crop Intelligence</span>
+                
+                    <h1 class="typewriter">
+                        <span class="line1">AI-Powered</span>
+                        <span class="line2">Cotton Crop Intelligence</span>
                     </h1>
-                    <p>Analyze crop maturity, detect plant health issues, and optimize harvest timing using smart real-time deep learning analytics.</p>
+                
+                    <p>
+                        Analyze crop maturity, detect plant health issues, and optimize
+                        harvest timing using smart real-time deep learning analytics.
+                    </p>
+                
                     <div class="hero-cta">
                         <a href="/analyze" class="btn btn-primary">
                             <i class="fas fa-camera"></i> Analyze Image
                         </a>
+                       
                         <a href="/demo" class="btn btn-secondary">
                             <i class="fas fa-play-circle"></i> View Demo
                         </a>
                     </div>
                 </div>
+            </div>
                 <div class="hero-image">
                     <div class="scanner-container">
                         <!-- High Tech Corner Brackets -->
@@ -119,7 +295,7 @@
 
                         <!-- Interactive 3D WebGL Crop Scanner Container -->
                         <div class="image-wrapper canvas-3d-wrapper">
-                            <div id="canvas-3d-container" style="position: absolute; inset: 0; width: 100%; height: 100%; z-index: 4;"></div>
+                            <div id="canvas-3d-container" style="position: absolute; inset: 0; width: 100%; height: 80%; z-index: 4;"></div>
                             <div class="image-overlay" style="z-index: 5; pointer-events: none;"></div>
                         </div>
                     </div>
@@ -185,7 +361,24 @@
         </section>
         {% endblock %}
     </main>
+    <!-- =========================================================
+        Agri-Vision Footer Section
 
+        The footer provides quick-access navigation,
+        external platform references, social links,
+        branding information, and additional navigation
+        support for users browsing the platform.
+
+        Recent Improvements:
+        - Removed inactive Twitter/X social icon
+        - Improved footer cleanliness and consistency
+        - Reduced unnecessary external navigation clutter
+        - Enhanced footer maintainability
+        - Improved accessibility and usability
+
+        The footer maintains responsiveness and visual
+        consistency with the futuristic Agri-Vision UI.
+    ========================================================= -->
     <!-- Footer -->
     <footer class="footer no-print reveal reveal-fade-in">
         <div class="footer-container">
@@ -193,28 +386,81 @@
                 <h2 class="footer-title"><i class="fas fa-leaf"></i> Agri-Vision</h2>
                 <p class="footer-subtitle">Empowering cotton farmers with AI-driven insights.</p>
             </div>
+            <!-- =========================================================
+                Footer Navigation Links
+
+                Contains compact navigation shortcuts for
+                important platform pages including tutorials,
+                field comparison, support resources, and
+                AI-powered analysis features.
+
+                Navigation improvements help users access
+                important sections more efficiently while
+                improving overall platform usability.
+            ========================================================= -->
             <div class="footer-links-compact">
                 <a href="/">Home</a>
                 <a href="/analyze">Analyze</a>
                 <a href="/comparison">Field Comparison</a>
+                <a href="/dashboard">Dashboard</a>
                 <a href="/demo">Demo</a>
                 <a href="/tutorials">Tutorials</a>
-                <a href="#">Support</a>
+                <a href="{{ url_for('support') }}">Support</a>
             </div>
         </div>
+        <!-- =========================================================
+            Footer Bottom Information Section
+
+            Displays copyright information,
+            branding details, social media references,
+            and additional platform identity elements.
+
+            This section improves professional appearance
+            and strengthens overall UI completeness.
+        ========================================================= -->
         <div class="footer-bottom">
             <p>&copy; <span id="year"></span> Agri-Vision. All rights reserved.</p>
             <p>
                 Smart Cotton Crop Analysis System
             </p>
+
+            <!-- =========================================================
+                Footer Social Media Links Section
+
+                This section contains external social media
+                platform links associated with the Agri-Vision
+                project and contributor profiles.
+
+                Improvements Made:
+                - Removed inactive Twitter/X social icon
+                - Reduced unnecessary footer clutter
+                - Improved footer visual consistency
+                - Kept only actively maintained platforms
+                - Enhanced navigation cleanliness
+
+                The footer now provides a cleaner and more
+                professional appearance while avoiding
+                non-functional or unused external links.
+            ========================================================= -->
+
+
             <div class="footer-social">
-                <a href="#"><i class="fab fa-twitter"></i></a>
                 <a href="https://www.linkedin.com/in/neerugangarh/" target="_blank"><i class="fab fa-linkedin"></i></a>
                 <a href="https://github.com/neeru24/Agri-Vision" target="_blank"><i class="fab fa-github"></i></a>
             </div>
         </div>
     </footer>
+    <!-- =========================================================
+        Frontend Interactive Utility Scripts
 
+        Handles:
+        - Theme toggle interactions
+        - Dynamic UI behavior
+        - Frontend accessibility support
+        - Interactive visual enhancements
+
+        Organized separately for cleaner maintainability.
+    ========================================================= -->
     <script>
         document.getElementById("year").textContent = new Date().getFullYear();
 
@@ -724,5 +970,70 @@
             setTimeout(handleResize, 200);
         })();
     </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+        
+            const container = document.querySelector(".trail-container");
+        
+            const dots = [];
+            const totalDots = 15;
+        
+            let mouseX = 0;
+            let mouseY = 0;
+        
+            // Create dots
+            for (let i = 0; i < totalDots; i++) {
+            
+                const dot = document.createElement("div");
+                dot.classList.add("trail-dot");
+            
+                container.appendChild(dot);
+            
+                dots.push({
+                    el: dot,
+                    x: 0,
+                    y: 0
+                });
+            }
+        
+            // Mouse movement
+            document.addEventListener("mousemove", (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+        
+            // Animate
+            function animate() {
+            
+                let x = mouseX;
+                let y = mouseY;
+            
+                dots.forEach((dot, index) => {
+                
+                    dot.x += (x - dot.x) * 0.35;
+                    dot.y += (y - dot.y) * 0.35;
+                
+                    dot.el.style.left = dot.x + "px";
+                    dot.el.style.top = dot.y + "px";
+                
+                    // Smaller trailing dots
+                    const scale = (totalDots - index) / totalDots;
+                
+                    dot.el.style.transform =
+                        `translate(-50%, -50%) scale(${scale})`;
+                
+                    dot.el.style.opacity = scale;
+                
+                    x = dot.x;
+                    y = dot.y;
+                });
+            
+                requestAnimationFrame(animate);
+            }
+        
+            animate();
+        });
+        </script>
+        <div class="trail-container"></div>
 </body>
 </html>
