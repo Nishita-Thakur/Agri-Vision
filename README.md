@@ -174,7 +174,7 @@ https://universe.roboflow.com/deep-learning-nygzt/cotton-crop-dieases/browse?que
 
 ---
 # 🤖 Model Information
----
+<!-- --- -->
 ## For cotton crop
 ## Growth Stage Prediction Model
 Model Used - YOLOv8   
@@ -307,8 +307,7 @@ Using Docker is the easiest way to run Agri-Vision as it avoids system dependenc
 3. Build and start the container:
    ```bash
    docker-compose up --build
-   
-```
+   ```
 4. Access the web interface at `http://localhost:5000`.
 
 ---
