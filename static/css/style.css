@@ -282,6 +282,9 @@ body {
     flex-direction: column;
     gap: 8px;
     line-height: 1.1;
+    width:100%;
+    align-items:center;
+    justify-content:center;
 }
 
 .typewriter span {
@@ -690,14 +693,13 @@ body {
 
 .hero-container {
     position: relative;
-    max-width: 1100px;
-    /* margin: 0 auto; */
-    margin-left: 270px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
     display: grid;
     grid-template-columns: 1.15fr 0.85fr;
     gap: 4rem;
     align-items: center;
-    z-index: 3;
     width: 100%;
 }
 
@@ -1174,33 +1176,50 @@ body {
 
 /* Responsiveness */
 @media (max-width: 991px) {
+
     .hero-container {
+
         grid-template-columns: 1fr;
-        gap: 4rem;
+
         text-align: center;
+
+        gap: 3rem;
     }
-    
-    .hero-content h1 {
-        font-size: 2.6rem;
+
+    .hero-content {
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        text-align:center;
+        margin:0 auto;
     }
-    
-    .hero-content p {
-        margin-left: auto;
-        margin-right: auto;
-    }
-    
-    .hero-cta {
+
+    .hero-image {
+        order: 2;
+        display: flex;
         justify-content: center;
     }
-    
-    .floating-telemetry-1 {
-        left: 20px;
-        bottom: -15px;
+    .hero-content p {
+        max-width:650px;
+        margin-left:auto;
+        margin-right:auto;
     }
-    
-    .floating-telemetry-2 {
-        right: 20px;
-        top: -15px;
+    .scanner-container {
+        width: 100%;
+        max-width: 450px;
+        height: auto;
+    }
+    .typewriter {
+        align-items:center;
+    }
+    .hero-cta {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    .hero-badge-wrapper {
+        display:flex;
+        justify-content:center;
     }
 }
 
@@ -2335,7 +2354,42 @@ body {
         grid-template-columns: 1fr;
     }
 }
+@media (max-width: 576px) {
 
+    .hero {
+
+        padding: 7rem 1rem 4rem;
+    }
+
+    .hero-content h1 {
+
+        font-size: 2.2rem;
+    }
+
+    .hero-content p {
+
+        font-size: 1rem;
+    }
+
+    .hero-cta {
+
+        flex-direction: column;
+
+        width: 100%;
+    }
+
+    .hero-cta .btn {
+
+        width: 100%;
+
+        justify-content: center;
+    }
+
+    .scanner-container {
+
+        max-width: 100%;
+    }
+}
 @media (max-width: 560px) {
     .comparison-shell {
         padding: 0 1rem;
