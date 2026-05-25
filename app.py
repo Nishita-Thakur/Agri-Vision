@@ -51,6 +51,7 @@ app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
 
 LANG = {
     "en": {"welcome": "Welcome to Agri Vision"},
+    "hi": {"welcome": "अग्री विज़न में आपका स्वागत है"},
     "te": {"welcome": "అగ్రి విజన్‌కు స్వాగతం"},
 }
 
