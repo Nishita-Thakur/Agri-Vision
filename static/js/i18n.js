@@ -14,12 +14,16 @@ document.addEventListener('DOMContentLoaded', () => {
     function applyLanguage(lang) {
         if (!translations[lang]) return;
 
-        // Force translate all visible elements
+        // Translate all current elements with data-i18n
         document.querySelectorAll('[data-i18n]').forEach(el => {
             translateElement(el, lang);
         });
 
+        // Persist language choice
         localStorage.setItem('lang', lang);
+        // Set cookie so server-side Jinja2 filter can read it
+        document.cookie = `lang=${lang}; path=/; max-age=31536000`;
+        
         document.documentElement.lang = lang;
     }
 
