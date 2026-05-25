@@ -46,6 +46,9 @@ class MockResNetModel:
         logits[0, 5] = 10.0
         return logits
 
+    def eval(self):
+        return self
+
 
 class MockYOLOBox:
     def __init__(self, class_id, confidence, xyxy):

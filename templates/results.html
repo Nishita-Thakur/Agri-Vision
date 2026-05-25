@@ -109,16 +109,18 @@
             <div style="font-size: 1.8rem;">🌧️</div>
             <div style="font-size: 1.3rem; font-weight: 600; color: #2980b9;">{{ weather.precipitation }} mm</div>
             <div style="font-size: 0.75rem; color: #6c757d;">Precipitation</div>
-          {% endif %}
-      <!-- Analyzed Image + Bounding Boxes -->
-      {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
       {% if image_b64 %}
       <div class="result-img-container" style="position: relative; margin-bottom: 2rem">
         <div id="original-image-view" style="position: relative">
           <img id="result-img" alt="Analyzed Crop Image" src="data:image/jpeg;base64,{{ image_b64 }}" class="result-img" />
           <svg id="bbox-svg" class="result-svg" style="position: absolute; top: 0; left: 0" width="410" height="{{ (img_shape.height|default(1) / img_shape.width|default(1) * 410)|int }}"></svg>
         </div>
-        {% endif %}
         {% if grad_cam_image_b64 %}
         <div id="grad-cam-view" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none;">
           <img id="grad-cam-img" alt="Grad-CAM Heatmap" src="data:image/jpeg;base64,{{ grad_cam_image_b64 }}" class="result-img" style="border: 2px solid var(--ai-blue)" />
@@ -348,6 +350,8 @@
             });
           })();
         </script>
+      </div>
+      {% endif %}
         
         <div class="agri-leaf-compare-grid">
           

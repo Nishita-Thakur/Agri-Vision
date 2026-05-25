@@ -47,6 +47,7 @@ from services.weather_service import (
     geocode_city,
     get_weather,
 )
+from services.yield_service import estimate_yield
 
 load_dotenv()
 
@@ -303,24 +304,6 @@ def resize_image(image: np.ndarray, max_dim: int = MAX_INFERENCE_DIMENSION) -> n
 def calculate_disease_severity(health_score: float) -> float:
     return max(0.0, 100.0 - float(health_score))
 
-
-def predict_yield(health_score: float, growth_stage: str, area_acres: float = 1.0) -> Dict[str, float]:
-    base_yield = 700.0
-    health_factor = float(health_score) / 100.0
-    stage_factors = {
-        "Cotton Blossom": 0.8,
-        "Cotton Bud": 0.9,
-        "Early Boll": 1.0,
-        "Matured Cotton Boll": 1.1,
-        "Split Cotton Boll": 1.0,
-    }
-    g_factor = stage_factors.get(growth_stage, 0.9)
-    estimated_yield = base_yield * health_factor * g_factor * float(area_acres)
-    confidence = min(95.0, 50.0 + (float(health_score) * 0.4))
-    return {
-        "estimated_yield_kg_per_acre": round(estimated_yield, 2),
-        "confidence_percentage": round(confidence, 2),
-    }
 
 
 def generate_mock_heatmap(image_rgb: np.ndarray) -> np.ndarray:
@@ -667,86 +650,6 @@ def generate_advanced_recommendations(disease_result: Dict[str, Any], growth_res
     return adv_recs
 
 
-def analyze_image(image):
-    growth = infer_growth_stage(image)
-    disease = infer_disease(image)
-
-    grad_cam_image_b64 = None
-    # Generate Grad-CAM heatmap if ResNet model and Grad-CAM instance are available
-    # and a valid prediction was made (predicted_class_idx is not None)
-    if resnet_model and grad_cam_instance and disease.get("predicted_class_idx") is not None:
-        try:
-            # Preprocess image for ResNet (ensure it's the same as infer_disease)
-            input_tensor_for_resnet = preprocess_image_for_resnet(image)
-            
-            # Generate Grad-CAM using the instance
-            grad_cam_overlay = grad_cam_instance(
-                input_tensor_for_resnet,
-                disease["predicted_class_idx"],
-                image # Pass the original RGB image (numpy array) for overlay
-            )
-            if grad_cam_overlay is not None:
-                grad_cam_image_b64 = encode_image_for_display(grad_cam_overlay)
-        except Exception as e:
-            logger.error(f"Error generating Grad-CAM: {e}")
-            grad_cam_image_b64 = None
-
-    # Fallback mock heatmap to guarantee XAI availability
-    if grad_cam_image_b64 is None:
-        try:
-            mock_heatmap = generate_mock_heatmap(image)
-            mock_overlay = apply_heatmap_on_image(image, mock_heatmap)
-            grad_cam_image_b64 = encode_image_for_display(mock_overlay)
-            logger.info("Generated high-fidelity fallback mock explainability heatmap.")
-        except Exception as e:
-            logger.error(f"Error generating fallback mock heatmap: {e}")
-
-    # Set both top-level and nested properties for maximum frontend and test compatibility
-    disease["heatmap_b64"] = grad_cam_image_b64
-
-    recs = generate_recommendations(disease, growth)
-    
-    # Calculate severity
-    severity = calculate_disease_severity(disease["health_score"])
-    
-    # Use estimate_yield from service
-    from services.yield_service import estimate_yield
-    yield_est = estimate_yield(disease, growth, weather=None, field_acres=1.0)
-    
-    # Generate advanced recommendations
-    adv_recs = generate_advanced_recommendations(disease, growth)
-    
-    # Generate farmer insights
-    insights = generate_farmer_insights(disease, growth)
-
-    result = {
-        "disease": disease,
-        "growth": growth,
-        "recommendations": recs,
-        "grad_cam_image_b64": grad_cam_image_b64, # Add Grad-CAM to results
-        "disease_severity": severity,
-        "yield_estimate": yield_est, # Rename to yield_estimate for template compatibility
-        "advanced_recommendations": adv_recs,
-        "farmer_insights": insights
-    }
-
-    if growth["main_class"] is None:
-        if yolo_model is None:
-            fallback_reason = "Growth stage model unavailable in this deployment."
-        else:
-            fallback_reason = (
-                "Cotton growth stage could not be detected from the uploaded image."
-            )
-        result["warnings"] = [
-            fallback_reason,
-            "Disease analysis is still provided, but comparison may be less reliable without a confirmed cotton crop detection.",
-            "Grad-CAM explainability may also be affected if the primary crop is not detected." # Add this warning
-        ]
-
-    return result
-
-    return adv_recs
-
 
 def encode_image_for_display(image: np.ndarray) -> str:
     display_image = resize_image(image, DISPLAY_IMAGE_MAX_DIMENSION)
@@ -857,7 +760,7 @@ def analyze_image(image: np.ndarray) -> Dict[str, Any]:
 
         recs = generate_recommendations(disease, growth)
         severity = calculate_disease_severity(disease["health_score"])
-        y_pred = predict_yield(disease["health_score"], growth.get("main_class", "Unknown"))
+        yield_est = estimate_yield(disease, growth, weather=None, field_acres=1.0)
         adv_recs = generate_advanced_recommendations(disease, growth)
         insights = generate_farmer_insights(disease, growth)
 
@@ -868,7 +771,7 @@ def analyze_image(image: np.ndarray) -> Dict[str, Any]:
             "grad_cam_image_b64": grad_cam_image_b64,
             "heatmap_only_b64": heatmap_only_b64,
             "disease_severity": severity,
-            "yield_prediction": y_pred,
+            "yield_estimate": yield_est,
             "advanced_recommendations": adv_recs,
             "farmer_insights": insights,
         }
@@ -1190,152 +1093,85 @@ def demo():
             {"class_id": 3, "class_name": "Matured Cotton Boll", "confidence": 0.91, "bbox": [120, 80, 210, 155]},
             {"class_id": 4, "class_name": "Split Cotton Boll", "confidence": 0.70, "bbox": [300, 120, 390, 210]},
         ]
+
         demo_growth = {
             "main_class": "Matured Cotton Boll",
             "main_class_idx": 3,
             "confidence": 0.91,
-            "bbox": [120, 80, 210, 155],
-        },
-        {
-            "class_id": 4,
-            "class_name": "Split Cotton Boll",
-            "confidence": 0.70,
-            "bbox": [300, 120, 390, 210],
-        },
-    ]
-    demo_growth = {
-        "main_class": "Matured Cotton Boll",
-        "main_class_idx": 3,
-        "confidence": 0.91,
-        "boxes": demo_growth_boxes,
-        "raw": demo_growth_boxes,
-    }
-    
-    # Generate high-quality synthetic cotton BGR image representing field crop
-    synthetic_bgr = np.zeros((384, 512, 3), dtype=np.uint8)
-    
-    # Fill background with a rich soft earthy background
-    synthetic_bgr[:, :] = [30, 40, 45]
-    
-    # Draw deep-green leaf foliage (multiple overlapping green circles)
-    cv2.circle(synthetic_bgr, (200, 220), 120, (34, 139, 34), -1) # Forest Green
-    cv2.circle(synthetic_bgr, (320, 260), 100, (46, 139, 87), -1) # Sea Green
-    cv2.circle(synthetic_bgr, (120, 280), 90, (34, 120, 34), -1) # Darker Green
-    
-    # Draw organic branch structure
-    cv2.line(synthetic_bgr, (256, 384), (256, 200), (42, 75, 124), 12)
-    cv2.line(synthetic_bgr, (256, 260), (140, 180), (42, 75, 124), 8)
-    cv2.line(synthetic_bgr, (256, 220), (380, 150), (42, 75, 124), 8)
-    
-    # Draw localized crop anomalies (reddish-brown leaf spots / target spot disease representation)
-    cv2.circle(synthetic_bgr, (220, 200), 15, (40, 50, 139), -1)
-    cv2.circle(synthetic_bgr, (215, 195), 5, (20, 30, 80), -1)
-    cv2.circle(synthetic_bgr, (180, 240), 10, (40, 50, 139), -1)
-    
-    # Draw Matured Cotton Boll within [120, 80, 210, 155] (center is (165, 117.5))
-    cv2.ellipse(synthetic_bgr, (165, 117), (40, 30), 0, 0, 360, (50, 180, 100), -1)
-    cv2.ellipse(synthetic_bgr, (165, 117), (40, 30), 0, 0, 360, (40, 140, 80), 2)
-    cv2.line(synthetic_bgr, (165, 87), (165, 75), (42, 75, 124), 4)
-
-    # Draw Split Cotton Boll within [300, 120, 390, 210] (center is (345, 165))
-    cv2.circle(synthetic_bgr, (330, 165), 20, (245, 245, 245), -1)
-    cv2.circle(synthetic_bgr, (360, 165), 20, (245, 245, 245), -1)
-    cv2.circle(synthetic_bgr, (345, 150), 20, (255, 255, 255), -1)
-    cv2.circle(synthetic_bgr, (345, 180), 20, (230, 230, 230), -1)
-    cv2.ellipse(synthetic_bgr, (345, 185), (35, 15), 0, 0, 360, (30, 50, 90), -1)
-    
-    # Convert from BGR to RGB
-    synthetic_rgb = cv2.cvtColor(synthetic_bgr, cv2.COLOR_BGR2RGB)
-    
-    # Generate mock heatmap
-    mock_heatmap = generate_mock_heatmap(synthetic_rgb)
-    mock_overlay = apply_heatmap_on_image(synthetic_rgb, mock_heatmap)
-    
-    # Base64 encode both original synthetic image and XAI overlay
-    image_b64 = encode_image_for_display(synthetic_rgb)
-    grad_cam_image_b64 = encode_image_for_display(mock_overlay)
-    
-    # Set top-level and nested properties for robustness
-    demo_disease["heatmap_b64"] = grad_cam_image_b64
-    
-    # Calculate Severity
-    severity = calculate_disease_severity(demo_disease["health_score"])
-    
-    # Use estimate_yield from service
-    from services.yield_service import estimate_yield
-    yield_est = estimate_yield(demo_disease, demo_growth, weather=None, field_acres=1.0)
-    
-    # Generate advanced recommendations
-    adv_recs = generate_advanced_recommendations(demo_disease, demo_growth)
-    
-    # Generate farmer insights
-    insights = generate_farmer_insights(demo_disease, demo_growth)
-
-    example_json = {
-        "disease": demo_disease,
-        "growth": demo_growth,
-        "recommendations": generate_recommendations(demo_disease, demo_growth),
-        "grad_cam_image_b64": grad_cam_image_b64,
-        "disease_severity": severity,
-        "yield_estimate": yield_est,
-        "advanced_recommendations": adv_recs,
-        "farmer_insights": insights
-    }
-    return render_template(
-        "results.html",
-        results=example_json,
-        filename="demo_cotton.jpg",
-        image_b64=image_b64,
-        img_shape={"width": 512, "height": 384},
-        raw_json=json.dumps(example_json, indent=2),
-        timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        grad_cam_image_b64=grad_cam_image_b64,
-        yield_estimate=yield_est # Also pass as top-level for robustness
-    )
             "boxes": demo_growth_boxes,
             "raw": demo_growth_boxes,
         }
-
+        
+        # Generate high-quality synthetic cotton BGR image representing field crop
         synthetic_bgr = np.zeros((384, 512, 3), dtype=np.uint8)
+        
+        # Fill background with a rich soft earthy background
         synthetic_bgr[:, :] = [30, 40, 45]
-        cv2.circle(synthetic_bgr, (200, 220), 120, (34, 139, 34), -1)
-        cv2.circle(synthetic_bgr, (320, 260), 100, (46, 139, 87), -1)
-        cv2.circle(synthetic_bgr, (120, 280), 90, (34, 120, 34), -1)
+        
+        # Draw deep-green leaf foliage (multiple overlapping green circles)
+        cv2.circle(synthetic_bgr, (200, 220), 120, (34, 139, 34), -1) # Forest Green
+        cv2.circle(synthetic_bgr, (320, 260), 100, (46, 139, 87), -1) # Sea Green
+        cv2.circle(synthetic_bgr, (120, 280), 90, (34, 120, 34), -1) # Darker Green
+        
+        # Draw organic branch structure
         cv2.line(synthetic_bgr, (256, 384), (256, 200), (42, 75, 124), 12)
         cv2.line(synthetic_bgr, (256, 260), (140, 180), (42, 75, 124), 8)
         cv2.line(synthetic_bgr, (256, 220), (380, 150), (42, 75, 124), 8)
+        
+        # Draw localized crop anomalies (reddish-brown leaf spots / target spot disease representation)
         cv2.circle(synthetic_bgr, (220, 200), 15, (40, 50, 139), -1)
         cv2.circle(synthetic_bgr, (215, 195), 5, (20, 30, 80), -1)
         cv2.circle(synthetic_bgr, (180, 240), 10, (40, 50, 139), -1)
+        
+        # Draw Matured Cotton Boll within [120, 80, 210, 155] (center is (165, 117.5))
         cv2.ellipse(synthetic_bgr, (165, 117), (40, 30), 0, 0, 360, (50, 180, 100), -1)
         cv2.ellipse(synthetic_bgr, (165, 117), (40, 30), 0, 0, 360, (40, 140, 80), 2)
         cv2.line(synthetic_bgr, (165, 87), (165, 75), (42, 75, 124), 4)
+
+        # Draw Split Cotton Boll within [300, 120, 390, 210] (center is (345, 165))
         cv2.circle(synthetic_bgr, (330, 165), 20, (245, 245, 245), -1)
         cv2.circle(synthetic_bgr, (360, 165), 20, (245, 245, 245), -1)
         cv2.circle(synthetic_bgr, (345, 150), 20, (255, 255, 255), -1)
         cv2.circle(synthetic_bgr, (345, 180), 20, (230, 230, 230), -1)
         cv2.ellipse(synthetic_bgr, (345, 185), (35, 15), 0, 0, 360, (30, 50, 90), -1)
-
+        
+        # Convert from BGR to RGB
         synthetic_rgb = cv2.cvtColor(synthetic_bgr, cv2.COLOR_BGR2RGB)
+        
+        # Generate mock heatmap
         mock_heatmap = generate_mock_heatmap(synthetic_rgb)
         mock_overlay = apply_heatmap_on_image(synthetic_rgb, mock_heatmap)
-        pure_heatmap_rgb = generate_pure_heatmap(synthetic_rgb, mock_heatmap)
         
+        # Base64 encode both original synthetic image and XAI overlay
         image_b64 = encode_image_for_display(synthetic_rgb)
         grad_cam_image_b64 = encode_image_for_display(mock_overlay)
-        heatmap_only_b64 = encode_image_for_display(pure_heatmap_rgb)
-
-        demo_disease["heatmap_b64"] = grad_cam_image_b64
-        demo_disease["heatmap_only_b64"] = heatmap_only_b64
         
+        # Set top-level and nested properties for robustness
+        demo_disease["heatmap_b64"] = grad_cam_image_b64
+        
+        # Calculate Severity
+        severity = calculate_disease_severity(demo_disease["health_score"])
+        
+        # Use estimate_yield from service
+        from services.yield_service import estimate_yield
+        yield_est = estimate_yield(demo_disease, demo_growth, weather=None, field_acres=1.0)
+        
+        # Generate advanced recommendations
+        adv_recs = generate_advanced_recommendations(demo_disease, demo_growth)
+        
+        # Generate farmer insights
+        insights = generate_farmer_insights(demo_disease, demo_growth)
+
         example_json = {
             "disease": demo_disease,
             "growth": demo_growth,
             "recommendations": generate_recommendations(demo_disease, demo_growth),
             "grad_cam_image_b64": grad_cam_image_b64,
-            "heatmap_only_b64": heatmap_only_b64,
+            "disease_severity": severity,
+            "yield_estimate": yield_est,
+            "advanced_recommendations": adv_recs,
+            "farmer_insights": insights
         }
-
         return render_template(
             "results.html",
             results=example_json,
@@ -1345,8 +1181,9 @@ def demo():
             raw_json=json.dumps(example_json, indent=2),
             timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             grad_cam_image_b64=grad_cam_image_b64,
-            heatmap_only_b64=heatmap_only_b64,
+            yield_estimate=yield_est,
             disease_info=disease_info_map.get("Healthy", {}),
+            weather=None
         )
     except Exception as e:
         logger.error(f"Demo route failed: {e}")
@@ -1637,7 +1474,7 @@ def api_analyze_stream():
 
             field_acres = request.form.get("field_acres", type=float) or 1.0
             if results.get("disease") and results.get("growth"):
-                yield_estimate = predict_yield(results["disease"]["health_score"], results["growth"].get("main_class", "Unknown"), field_acres)
+                yield_estimate = estimate_yield(results["disease"], results["growth"], weather, field_acres)
         except Exception as exc:
             logger.warning("Weather/yield enrichment failed: %s", exc)
 
