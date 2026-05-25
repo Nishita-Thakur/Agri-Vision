@@ -1204,15 +1204,52 @@ def api_chat():
 
     message = str(data["message"]).lower()
     responses = {
-        r"\b(hello|hi|hey)\b": ["Hello there! How can I assist you with your cotton crop today?", "Hi! Need any help analyzing your farm data?"],
-        r"\b(disease|sick|spots|rot|blight)\b": ["If you're noticing leaf spots or rotting, it could be Bacterial Blight or Target Spot. I highly recommend taking a picture and uploading it to our Analyze tab for an AI diagnosis."],
-        r"\b(yield|harvest|produce)\b": ["Yield depends heavily on the crop's health score and current growth stage. Check out the Dashboard for predictions across your fields!"],
-        r"\b(fertilizer|nutrient|npk|potassium)\b": ["Cotton responds well to a balanced NPK fertilizer. During the blooming and early boll stages, potassium is critical to maximize yield."],
-        r"\b(water|irrigation|dry)\b": ["Maintain regular watering during the blossom phase. However, once bolls mature and start splitting, you should reduce irrigation to prevent rot."],
-        r"\b(pest|worm|aphid|bug)\b": ["Pests like Pink Bollworm and Aphids are common enemies of cotton. I recommend deploying pheromone traps and scouting the fields twice a week."],
+        r"\b(hello|hi|hey|howdy|greetings)\b": [
+            "Hello there! How can I assist you with your cotton crop today?",
+            "Hi! Need any help analyzing your farm data?"
+        ],
+        r"\b(disease|diseases|sick|spots?|rot|blight)\b": [
+            "If you're noticing leaf spots or rotting, it could be Bacterial Blight or Target Spot. I highly recommend taking a picture and uploading it to our Analyze tab for an AI diagnosis."
+        ],
+        r"\b(yield|yields|harvest|harvests|produce)\b": [
+            "Yield depends heavily on the crop's health score and current growth stage. Check out the Dashboard for predictions across your fields!"
+        ],
+        r"\b(fertilizer|fertilizers|nutrient|nutrients|npk|potassium)\b": [
+            "Cotton responds well to a balanced NPK fertilizer. During the blooming and early boll stages, potassium is critical to maximize yield."
+        ],
+        r"\b(water|watering|irrigation|dry|drought)\b": [
+            "Maintain regular watering during the blossom phase. However, once bolls mature and start splitting, you should reduce irrigation to prevent rot."
+        ],
+        r"\b(pest|pests|worm|worms|aphid|aphids|bug|bugs|insect|insects|bollworm)\b": [
+            "Pests like Pink Bollworm and Aphids are common enemies of cotton. I recommend deploying pheromone traps and scouting the fields twice a week."
+        ],
+        r"\b(weather|temperature|rain|rainfall|humidity|climate)\b": [
+            "Weather plays a huge role in cotton health. Hot, dry spells stress bolls while excess rain can encourage fungal diseases. Use our weather tab to monitor conditions."
+        ],
+        r"\b(soil|soils|ph|minerals|clay|loam|sandy)\b": [
+            "Cotton thrives in well-draining loamy soil with a pH of 5.8–8.0. Conduct a soil test before the season to identify any nutrient deficiencies."
+        ],
+        r"\b(grow|growth|growing|stage|stages|seedling|boll|bolls|flower|flowering)\b": [
+            "Cotton growth has 5 key stages: germination, seedling, vegetative, flowering/boll formation, and maturity. Each stage has unique care needs — the flowering stage is most critical!"
+        ],
+        r"\b(spray|spraying|pesticide|pesticides|fungicide|herbicide|chemical)\b": [
+            "When spraying, always follow label rates and avoid spraying during peak heat or wind. Consider integrated pest management (IPM) to reduce chemical dependency."
+        ],
+        r"\b(thank(?:s|s you)?|awesome|great|perfect)\b": [
+            "You're welcome! Feel free to ask any time. Happy farming! 🌱",
+            "Glad I could help! Let me know if you have more questions about your cotton crop."
+        ],
+        r"\b(help|assist|support|guide|advice|tips?)\b": [
+            "I'm here to help! You can ask me about crop diseases, yield optimization, pest control, irrigation, fertilization, weather impacts, or soil health.",
+            "Sure! Try asking about cotton diseases, pest control, yield estimates, or upload an image in the Analyze tab for an instant AI diagnosis."
+        ],
+        r"\b(cotton|crop|crops|farm|farming|field|fields)\b": [
+            "Agri-Vision specializes in cotton crop analysis. Upload a field image in the Analyze tab for disease detection, yield prediction, and health scoring!"
+        ],
     }
 
     reply = "I'm your Agri-Vision AI assistant. I specialize in cotton farming, crop diseases, and yield optimization. How can I help you?"
+
     for pattern, reply_options in responses.items():
         if re.search(pattern, message):
             reply = random.choice(reply_options)

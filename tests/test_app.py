@@ -569,3 +569,45 @@ def test_gradcam_class_initialization():
     assert res is not None
     assert res.shape == (224, 224, 3)
 
+
+def test_api_chat_test(client):
+    resp = client.get("/api/chat_test")
+    assert resp.status_code == 200
+    data = json.loads(resp.data)
+    assert data == {"status": "ok"}
+
+
+def test_api_chat_empty_message(client):
+    resp = client.post("/api/chat", json={})
+    assert resp.status_code == 400
+    data = json.loads(resp.data)
+    assert "reply" in data
+    assert "didn't receive a message" in data["reply"]
+
+
+def test_api_chat_keyword_matching(client):
+    # Test "hello"
+    resp = client.post("/api/chat", json={"message": "Hello!"})
+    assert resp.status_code == 200
+    data = json.loads(resp.data)
+    assert "Hello there!" in data["reply"] or "Hi!" in data["reply"]
+
+    # Test "disease"
+    resp = client.post("/api/chat", json={"message": "Spots on crop leaves"})
+    assert resp.status_code == 200
+    data = json.loads(resp.data)
+    assert "Bacterial Blight" in data["reply"] or "Target Spot" in data["reply"]
+
+    # Test "yield"
+    resp = client.post("/api/chat", json={"message": "how to improve yield"})
+    assert resp.status_code == 200
+    data = json.loads(resp.data)
+    assert "health score" in data["reply"] or "growth stage" in data["reply"]
+
+
+def test_api_chat_fallback_response(client):
+    resp = client.post("/api/chat", json={"message": "unknown query message"})
+    assert resp.status_code == 200
+    data = json.loads(resp.data)
+    assert "Agri-Vision AI assistant" in data["reply"]
+
