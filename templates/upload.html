@@ -208,7 +208,7 @@ function useMyLocation() {
                 </div>
                 <!-- Smart Crop Health Insights Panel -->
                 <div class="smart-insights-panel">
-                    
+
                     <div class="insights-header">
                         <h3>🌿 Smart Crop Health Insights</h3>
                         <p>AI-powered environmental and crop recommendations</p>
@@ -279,7 +279,58 @@ function useMyLocation() {
                 transition: width 0.4s ease;
             "></div>
         </div>
- 
+        <!-- AI Confidence & Crop Health Meter -->
+            <div class="ai-health-dashboard">
+            
+                <!-- AI Confidence -->
+                <div class="ai-meter-card">
+                    <div class="meter-header">
+                        <span>🤖 AI Confidence</span>
+                        <span id="confidenceValue">94%</span>
+                    </div>
+                
+                    <div class="circular-progress">
+                        <svg>
+                            <circle cx="55" cy="55" r="45"></circle>
+                            <circle cx="55" cy="55" r="45" id="confidenceCircle"></circle>
+                        </svg>
+                    
+                        <div class="progress-number" id="confidenceText">
+                            94%
+                        </div>
+                    </div>
+                
+                    <p class="meter-status success-status">
+                        High Prediction Accuracy
+                    </p>
+                </div>
+            
+                <!-- Crop Health Meter -->
+                <div class="ai-meter-card">
+                
+                    <div class="meter-header">
+                        <span>🌱 Crop Health</span>
+                        <span id="healthValue">86%</span>
+                    </div>
+                
+                    <div class="health-meter-wrapper">
+                        <div class="health-meter">
+                            <div class="health-meter-fill" id="healthMeterFill"></div>
+                        </div>
+                    </div>
+                
+                    <div class="health-labels">
+                        <span>Critical</span>
+                        <span>Moderate</span>
+                        <span>Healthy</span>
+                    </div>
+                
+                    <p class="meter-status healthy-status">
+                        Crop condition looks healthy
+                    </p>
+                </div>
+            
+            </div>
         <!-- Step checklist -->
         <div id="streamStepList" style="display:flex; flex-direction:column; gap:0.5rem;">
             <div class="stream-step" id="step-upload" data-label="Uploading image...">⬜ Uploading image...</div>
@@ -863,4 +914,49 @@ document.querySelector('form').addEventListener('submit', async function(event) 
     }
 });
 </script>
+<script>
+
+/* AI CONFIDENCE + HEALTH ANIMATION */
+
+function updateAIMetrics(confidence = 94, health = 86) {
+
+    // Confidence Circle
+    const circle = document.getElementById('confidenceCircle');
+    const confidenceText = document.getElementById('confidenceText');
+    const confidenceValue = document.getElementById('confidenceValue');
+
+    const radius = 45;
+    const circumference = 2 * Math.PI * radius;
+
+    const offset = circumference - (confidence / 100) * circumference;
+
+    circle.style.strokeDashoffset = offset;
+
+    confidenceText.textContent = confidence + '%';
+    confidenceValue.textContent = confidence + '%';
+
+    // Health Meter
+    const healthFill = document.getElementById('healthMeterFill');
+    const healthValue = document.getElementById('healthValue');
+
+    healthFill.style.width = health + '%';
+    healthValue.textContent = health + '%';
+}
+
+/* Simulate AI updates during analysis */
+
+setTimeout(() => {
+    updateAIMetrics(72, 65);
+}, 1200);
+
+setTimeout(() => {
+    updateAIMetrics(84, 78);
+}, 2500);
+
+setTimeout(() => {
+    updateAIMetrics(94, 86);
+}, 4000);
+
+</script>
+
 {% endblock %}
