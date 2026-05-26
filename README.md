@@ -79,7 +79,7 @@ Agri-Vision uses deep learning and computer vision techniques to:
 
 ## ✨ Features
 
-- 🌿 **Growth Phase Detection** (4 stages for cotton, 🍅 Tomato coming soon)
+- 🌿 **Growth Phase Detection** (Supported for cotton and 🍅 Tomato)
 - 💚 **Health Assessment** (disease & damage detection)
 - 🤖 **AI-Powered Analysis** using deep learning
 - 🌐 **Web Interface** (Flask-based)
@@ -117,7 +117,7 @@ https://universe.roboflow.com/p-project-ebvkg/cotton-boll-growth-detection/datas
 
 ### Crop Disease Classification Dataset (for cotton crop)  
 
-https://universe.roboflow.com/deep-learning-nygzt/cotton-crop-dieases/browse?queryText=&pageSize=50&startingIndex=0&browseQuery=true
+https://universe.roboflow.com/deep-learning-nygzt/tomato-crop-diseases
 
 ## Growth Phases Detected
 
@@ -151,8 +151,7 @@ https://www.kaggle.com/datasets/arjunsudheer326/tomato-plant-stages-dataset
 
 ### Crop Disease Classification Dataset (for tomato crop)  
 
-https://universe.roboflow.com/deep-learning-nygzt/cotton-crop-dieases/browse?queryText=&pageSize=50&startingIndex=0&browseQuery=true
-
+https://universe.roboflow.com/deep-learning-nygzt/tomato-crop-diseases
 ## Growth Phases Detected
 
 - Early Vegetative
@@ -466,7 +465,7 @@ curl -X POST -F "file=@cotton_image.jpg" http://localhost:5000/api/analyze
 
 - 📱 Mobile application support  
 - 🎥 Real-time video analysis  
-- 🌾 Multi-crop support (🍅 Tomato crop analysis - In Progress)
+- 🌾 Multi-crop support (Cotton, Tomato, and Potato fully integrated)
 - ☁️ Weather data integration  
 - 📊 Yield prediction system  
 - 🧠 Improved AI models
