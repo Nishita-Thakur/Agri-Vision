@@ -1,6 +1,7 @@
 """
 Agri-Vision Flask Application
 Unified inference for disease classification (ResNet50) and growth stage prediction (YOLOv8)
+With Model Versioning and A/B Testing Framework
 """
 from flask import Flask, render_template, request, jsonify, flash, redirect, url_for
 import os
@@ -17,6 +18,7 @@ from PIL import Image
 from ultralytics import YOLO
 import json
 from jinja2 import Environment, FileSystemLoader
+from model_registry import registry
 
 load_dotenv()
 
@@ -77,24 +79,16 @@ resnet_model = None
 yolo_model = None
 
 def load_models():
+    """Load models using the model registry"""
     global resnet_model, yolo_model
-    if resnet_model is None:
-        try:
-            resnet_model = torch.load(
-                'models/cotton_crop_disease_classification/full_resnet50_model.pth',
-                map_location=torch.device('cpu'),
-            )
-            logger.info("ResNet50 model loaded successfully")
-        except Exception as e:
-            logger.warning(f"ResNet50 model not found or failed to load: {e}")
-            resnet_model = None
-    if yolo_model is None:
-        try:
-            yolo_model = YOLO('models/cotton_crop_growth_stage_prediction/best.pt')
-            logger.info("YOLOv8 model loaded successfully")
-        except Exception as e:
-            logger.warning(f"YOLOv8 model not found or failed to load: {e}")
-            yolo_model = None
+    try:
+        resnet_model = registry.load_model("resnet")
+        yolo_model = registry.load_model("yolo")
+        logger.info("Models loaded successfully via registry")
+    except Exception as e:
+        logger.warning(f"Models not found or failed to load: {e}")
+        resnet_model = None
+        yolo_model = None
     return resnet_model, yolo_model
 
 def preprocess_image_for_resnet(image, target_size=(224, 224)):
@@ -107,19 +101,53 @@ def preprocess_image_for_resnet(image, target_size=(224, 224)):
     image = image.unsqueeze(0)
     return image
 
-def infer_disease(image):
+def infer_disease(image, model_version=None):
     # Returns all disease outputs, including confidences for each class
-    if resnet_model:
-        processed = preprocess_image_for_resnet(image)
-        with torch.no_grad():
-            output = resnet_model(processed)
-            probs = F.softmax(output, dim=1)
-            confidence, prediction = torch.max(probs, 1)
-        probs_np = probs.numpy()  # shape: (1, 8)
-        class_idx = int(prediction.item())
-        healthy_idx = disease_classes.index("Healthy")  
-        health_score = float(probs_np[0][healthy_idx]) * 100
-
+    import time
+    start_time = time.time()
+    
+    # Load model from registry (supports version selection)
+    try:
+        model = registry.load_model("resnet", model_version)
+        active_version = registry.get_active_model("resnet").version if model_version is None else model_version
+    except:
+        model = resnet_model
+        active_version = "v1.0" if resnet_model else "fallback"
+    
+    if model:
+        try:
+            processed = preprocess_image_for_resnet(image)
+            with torch.no_grad():
+                output = model(processed)
+                probs = F.softmax(output, dim=1)
+                confidence, prediction = torch.max(probs, 1)
+            probs_np = probs.numpy()  # shape: (1, 8)
+            class_idx = int(prediction.item())
+            healthy_idx = disease_classes.index("Healthy")  
+            health_score = float(probs_np[0][healthy_idx]) * 100
+            
+            inference_time = time.time() - start_time
+            
+            # Track metrics in registry
+            registry.update_metrics(
+                "resnet", active_version, 
+                float(probs_np[0][class_idx]), 
+                inference_time, 
+                success=True
+            )
+            
+        except Exception as e:
+            logger.error(f"Disease inference error: {e}")
+            # Demo fallback
+            probs_np = np.random.rand(1, len(disease_classes))
+            probs_np = probs_np / probs_np.sum(axis=1, keepdims=True)
+            class_idx = int(np.argmax(probs_np[0]))
+            health_score = float(np.max(probs_np[0]))*100
+            inference_time = time.time() - start_time
+            
+            # Track error in metrics
+            if active_version != "fallback":
+                registry.update_metrics("resnet", active_version, 0.0, inference_time, success=False)
 
     else:
         # Demo fallback
@@ -127,6 +155,7 @@ def infer_disease(image):
         probs_np = probs_np / probs_np.sum(axis=1, keepdims=True)
         class_idx = int(np.argmax(probs_np[0]))
         health_score = float(np.max(probs_np[0]))*100
+        inference_time = time.time() - start_time
 
     # Format probabilities per class
     disease_confidences = {disease_classes[i]: float(probs_np[0][i]) for i in range(len(disease_classes))}
@@ -138,10 +167,15 @@ def infer_disease(image):
         "all_confidences": disease_confidences,
         "health_score": health_score,  # 0-100
         "raw": probs_np.tolist(),
+        "model_version": active_version,
+        "inference_time": inference_time
     }
     return results
 
-def infer_growth_stage(image):
+def infer_growth_stage(image, model_version=None):
+    import time
+    start_time = time.time()
+    
     result = {
         "main_class": None,
         "main_class_idx": None,
@@ -149,34 +183,64 @@ def infer_growth_stage(image):
         "boxes": [],
         "raw": [],
     }
-    if yolo_model:
-        pil_image = Image.fromarray(image)
-        yolo_results = yolo_model(pil_image)
-        boxes = []
-        for r in yolo_results:
-            if hasattr(r, 'boxes'):
-                for b in r.boxes:
-                    class_id = int(b.cls[0].item()) if hasattr(b.cls[0], 'item') else int(b.cls[0])
-                    conf = float(b.conf[0].item()) if hasattr(b.conf[0], 'item') else float(b.conf[0])
-                    xyxy = b.xyxy[0].cpu().numpy().tolist()
-                    boxes.append({
-                        "class_id": class_id,
-                        "class_name": growth_stage_classes[class_id] if class_id < len(growth_stage_classes) else str(class_id),
-                        "confidence": conf,
-                        "bbox": xyxy,  # [x1, y1, x2, y2]
-                    })
-            else:
-                continue
-        # Most confident box as main prediction
-        if len(boxes):
-            main = max(boxes, key=lambda x: x['confidence'])
-            result.update({
-                "main_class": main["class_name"],
-                "main_class_idx": main["class_id"],
-                "confidence": main["confidence"],
-            })
-            result["boxes"] = boxes
-        result["raw"] = boxes
+    
+    # Load model from registry (supports version selection)
+    try:
+        model = registry.load_model("yolo", model_version)
+        active_version = registry.get_active_model("yolo").version if model_version is None else model_version
+    except:
+        model = yolo_model
+        active_version = "v1.0" if yolo_model else "fallback"
+    
+    if model:
+        try:
+            pil_image = Image.fromarray(image)
+            yolo_results = model(pil_image)
+            boxes = []
+            for r in yolo_results:
+                if hasattr(r, 'boxes'):
+                    for b in r.boxes:
+                        class_id = int(b.cls[0].item()) if hasattr(b.cls[0], 'item') else int(b.cls[0])
+                        conf = float(b.conf[0].item()) if hasattr(b.conf[0], 'item') else float(b.conf[0])
+                        xyxy = b.xyxy[0].cpu().numpy().tolist()
+                        boxes.append({
+                            "class_id": class_id,
+                            "class_name": growth_stage_classes[class_id] if class_id < len(growth_stage_classes) else str(class_id),
+                            "confidence": conf,
+                            "bbox": xyxy,  # [x1, y1, x2, y2]
+                        })
+                else:
+                    continue
+            # Most confident box as main prediction
+            if len(boxes):
+                main = max(boxes, key=lambda x: x['confidence'])
+                result.update({
+                    "main_class": main["class_name"],
+                    "main_class_idx": main["class_id"],
+                    "confidence": main["confidence"],
+                })
+                result["boxes"] = boxes
+            result["raw"] = boxes
+            
+            inference_time = time.time() - start_time
+            
+            # Track metrics in registry
+            avg_confidence = sum([b['confidence'] for b in boxes]) / len(boxes) if boxes else 0.0
+            registry.update_metrics(
+                "yolo", active_version,
+                avg_confidence,
+                inference_time,
+                success=len(boxes) > 0
+            )
+            
+        except Exception as e:
+            logger.error(f"Growth stage inference error: {e}")
+            inference_time = time.time() - start_time
+            if active_version != "fallback":
+                registry.update_metrics("yolo", active_version, 0.0, inference_time, success=False)
+    
+    result["model_version"] = active_version
+    result["inference_time"] = inference_time if 'inference_time' in locals() else 0.0
     return result
 
 def generate_recommendations(disease_result, growth_result):
@@ -392,29 +456,6 @@ def demo():
         timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     )
 
-@app.route("/api/analyze", methods=["POST"])
-def api_analyze():
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file uploaded'}), 400
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'error': 'No file selected'}), 400
-    try:
-        file_bytes = np.frombuffer(file.read(), np.uint8)
-        image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-        if image is None:
-            return jsonify({'error': 'Invalid image file'}), 400
-        image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        results = analyze_image(image_rgb)
-        return jsonify({
-            "status": "success",
-            "timestamp": datetime.now().isoformat(),
-            "results": results
-        })
-    except Exception as e:
-        logger.error(f"API analysis error: {e}")
-        return jsonify({'error': str(e)}), 500
-
 @app.route("/health")
 def health():
     model_loaded = resnet_model is not None and yolo_model is not None
@@ -441,6 +482,257 @@ def tutorials():
 @app.route('/stories')
 def stories():
     return render_template("stories.html")
+
+@app.route('/model-admin')
+def admin_dashboard():
+    return render_template("admin.html")
+
+# --- Model Management Admin Endpoints ---
+
+@app.route('/admin/models', methods=['GET'])
+def list_models():
+    """List all registered models with their metadata"""
+    model_type = request.args.get('type')
+    try:
+        models = registry.list_models(model_type)
+        return jsonify({
+            "status": "success",
+            "models": models,
+            "ab_test_enabled": registry.ab_test_enabled,
+            "rollback_threshold": registry.rollback_threshold
+        })
+    except Exception as e:
+        logger.error(f"Error listing models: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/admin/models/active', methods=['GET'])
+def get_active_models():
+    """Get currently active models"""
+    try:
+        active_resnet = registry.get_active_model("resnet")
+        active_yolo = registry.get_active_model("yolo")
+        return jsonify({
+            "status": "success",
+            "active_models": {
+                "resnet": active_resnet.to_dict() if active_resnet else None,
+                "yolo": active_yolo.to_dict() if active_yolo else None
+            }
+        })
+    except Exception as e:
+        logger.error(f"Error getting active models: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/admin/models/register', methods=['POST'])
+def register_model():
+    """Register a new model version"""
+    try:
+        data = request.get_json()
+        required_fields = ['model_type', 'version', 'path']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({"error": f"Missing required field: {field}"}), 400
+        
+        metadata = registry.register_model(
+            model_type=data['model_type'],
+            version=data['version'],
+            path=data['path'],
+            accuracy=data.get('accuracy', 0.0),
+            dataset_version=data.get('dataset_version', 'unknown'),
+            parameters=data.get('parameters', 0),
+            is_active=data.get('is_active', False),
+            ab_test_ratio=data.get('ab_test_ratio', 0.0)
+        )
+        return jsonify({
+            "status": "success",
+            "message": f"Model {data['model_type']} version {data['version']} registered successfully",
+            "metadata": metadata.to_dict()
+        })
+    except FileNotFoundError as e:
+        return jsonify({"error": str(e)}), 404
+    except Exception as e:
+        logger.error(f"Error registering model: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/admin/models/activate', methods=['POST'])
+def activate_model():
+    """Set a model version as active"""
+    try:
+        data = request.get_json()
+        required_fields = ['model_type', 'version']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({"error": f"Missing required field: {field}"}), 400
+        
+        registry.set_active_model(data['model_type'], data['version'])
+        return jsonify({
+            "status": "success",
+            "message": f"Model {data['model_type']} version {data['version']} activated successfully"
+        })
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 404
+    except Exception as e:
+        logger.error(f"Error activating model: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/admin/models/delete', methods=['DELETE'])
+def delete_model():
+    """Delete a model version"""
+    try:
+        data = request.get_json()
+        required_fields = ['model_type', 'version']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({"error": f"Missing required field: {field}"}), 400
+        
+        registry.delete_model(data['model_type'], data['version'])
+        return jsonify({
+            "status": "success",
+            "message": f"Model {data['model_type']} version {data['version']} deleted successfully"
+        })
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        logger.error(f"Error deleting model: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/admin/models/ab-testing', methods=['POST'])
+def toggle_ab_testing():
+    """Enable or disable A/B testing"""
+    try:
+        data = request.get_json()
+        enabled = data.get('enabled', True)
+        registry.enable_ab_testing(enabled)
+        return jsonify({
+            "status": "success",
+            "message": f"A/B testing {'enabled' if enabled else 'disabled'}",
+            "ab_test_enabled": registry.ab_test_enabled
+        })
+    except Exception as e:
+        logger.error(f"Error toggling A/B testing: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/admin/models/ab-ratio', methods=['POST'])
+def set_ab_ratio():
+    """Set A/B testing ratio for a model version"""
+    try:
+        data = request.get_json()
+        required_fields = ['model_type', 'version', 'ratio']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({"error": f"Missing required field: {field}"}), 400
+        
+        registry.set_ab_test_ratio(data['model_type'], data['version'], data['ratio'])
+        return jsonify({
+            "status": "success",
+            "message": f"A/B test ratio for {data['model_type']} version {data['version']} set to {data['ratio']}"
+        })
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        logger.error(f"Error setting A/B ratio: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/admin/models/metrics', methods=['GET'])
+def get_model_metrics():
+    """Get performance metrics for all models"""
+    try:
+        models = registry.list_models()
+        return jsonify({
+            "status": "success",
+            "metrics": models
+        })
+    except Exception as e:
+        logger.error(f"Error getting model metrics: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/admin/models/rollback-threshold', methods=['POST'])
+def set_rollback_threshold():
+    """Set automatic rollback threshold"""
+    try:
+        data = request.get_json()
+        threshold = data.get('threshold')
+        if threshold is None:
+            return jsonify({"error": "Missing required field: threshold"}), 400
+        
+        if not 0.0 <= threshold <= 1.0:
+            return jsonify({"error": "Threshold must be between 0.0 and 1.0"}), 400
+        
+        registry.rollback_threshold = threshold
+        registry.save_config()
+        return jsonify({
+            "status": "success",
+            "message": f"Rollback threshold set to {threshold}",
+            "rollback_threshold": registry.rollback_threshold
+        })
+    except Exception as e:
+        logger.error(f"Error setting rollback threshold: {e}")
+        return jsonify({"error": str(e)}), 500
+
+# --- Enhanced API Endpoints with Model Version Support ---
+
+@app.route("/api/analyze", methods=["POST"])
+def api_analyze():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file uploaded'}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+    
+    # Get optional model version parameters
+    resnet_version = request.form.get('resnet_version')
+    yolo_version = request.form.get('yolo_version')
+    request_id = request.form.get('request_id')  # For consistent A/B testing
+    
+    try:
+        file_bytes = np.frombuffer(file.read(), np.uint8)
+        image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+        if image is None:
+            return jsonify({'error': 'Invalid image file'}), 400
+        image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        
+        # Use A/B testing if enabled and request_id provided
+        if registry.ab_test_enabled and request_id:
+            resnet_model_version = None
+            yolo_model_version = None
+            # Registry will handle A/B routing internally
+        else:
+            resnet_model_version = resnet_version
+            yolo_model_version = yolo_version
+        
+        # First detect cotton growth stage
+        growth = infer_growth_stage(image_rgb, yolo_model_version)
+        
+        # Stop analysis if no cotton growth stage is detected
+        if growth["main_class"] is None:
+            return jsonify({
+                "status": "success",
+                "timestamp": datetime.now().isoformat(),
+                "results": {
+                    "error": "No cotton plant detected",
+                    "disease": None,
+                    "growth": growth,
+                    "recommendations": ["Please upload a valid cotton crop image."]
+                }
+            })
+        
+        # Continue disease analysis only for cotton crops
+        disease = infer_disease(image_rgb, resnet_model_version)
+        
+        # Generate recommendations
+        recs = generate_recommendations(disease, growth)
+        
+        return jsonify({
+            "status": "success",
+            "timestamp": datetime.now().isoformat(),
+            "results": {
+                "disease": disease,
+                "growth": growth,
+                "recommendations": recs,
+            }
+        })
+    except Exception as e:
+        logger.error(f"API analysis error: {e}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     logger.info("=" * 60)
