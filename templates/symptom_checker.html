@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symptom Checker - Agri-Vision</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .symptom-checker-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 120px 20px 40px;
+        }
+
+        .symptom-checker-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .symptom-checker-header h1 {
+            font-size: 2.5rem;
+            color: var(--deep-forest);
+            margin-bottom: 10px;
+        }
+
+        .symptom-checker-header p {
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .checker-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .checker-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .symptoms-section {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: var(--deep-forest);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .category-tab {
+            padding: 10px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            background: var(--bg-color);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .category-tab:hover,
+        .category-tab.active {
+            background: var(--emerald-green);
+            color: white;
+            border-color: var(--emerald-green);
+        }
+
+        .symptoms-list {
+            display: grid;
+            gap: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .symptom-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 15px;
+            background: var(--bg-color);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .symptom-item:hover {
+            border-color: var(--emerald-green);
+            transform: translateX(5px);
+        }
+
+        .symptom-item.selected {
+            background: rgba(46, 139, 87, 0.1);
+            border-color: var(--emerald-green);
+        }
+
+        .symptom-checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .symptom-item.selected .symptom-checkbox {
+            background: var(--emerald-green);
+            border-color: var(--emerald-green);
+        }
+
+        .symptom-checkbox i {
+            color: white;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .symptom-item.selected .symptom-checkbox i {
+            opacity: 1;
+        }
+
+        .symptom-info {
+            flex: 1;
+        }
+
+        .symptom-name {
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 5px;
+        }
+
+        .symptom-description {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            opacity: 0.7;
+            line-height: 1.4;
+        }
+
+        .results-section {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 120px;
+        }
+
+        .selected-symptoms {
+            margin-bottom: 25px;
+        }
+
+        .selected-count {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            opacity: 0.7;
+            margin-bottom: 15px;
+        }
+
+        .selected-symptoms-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .symptom-tag {
+            background: var(--emerald-green);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .symptom-tag i {
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+
+        .symptom-tag i:hover {
+            opacity: 1;
+        }
+
+        .check-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--emerald-green) 0%, #27ae60 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 25px;
+        }
+
+        .check-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(46, 139, 87, 0.3);
+        }
+
+        .check-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results-container {
+            display: none;
+        }
+
+        .results-container.active {
+            display: block;
+        }
+
+        .result-item {
+            background: var(--bg-color);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--emerald-green);
+            transition: all 0.3s ease;
+        }
+
+        .result-item:hover {
+            transform: translateX(5px);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .result-name {
+            font-weight: 600;
+            color: var(--deep-forest);
+            font-size: 1.1rem;
+        }
+
+        .match-score {
+            background: var(--emerald-green);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .result-description {
+            color: var(--text-color);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-color);
+        }
+
+        .loading i {
+            font-size: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+
+        .no-results i {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+
+        .clear-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .clear-btn:hover {
+            background: #dc2626;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">
+                <i class="fas fa-seedling"></i>
+                <span>Agri-Vision</span>
+            </a>
+            <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
+            </button>
+            <ul class="nav-menu" id="nav-menu">
+                <li><a href="/">Home</a></li>
+                {% if current_user.is_authenticated %}
+                    <li><a href="/analyze">Analyze</a></li>
+                    <li><a href="/batch">Batch</a></li>
+                    <li><a href="/disease-map">Disease Map</a></li>
+                    <li><a href="/dashboard">Dashboard</a></li>
+                    <li><a href="/reports">Reports</a></li>
+                    <li><a href="/history">History</a></li>
+                    <li><a href="/disease-database">Disease Database</a></li>
+                    <li><a href="/symptom-checker" class="active">Symptom Checker</a></li>
+                    <li><a href="/profile">Profile</a></li>
+                    {% if current_user.is_researcher() %}
+                        <li><a href="/model-admin">Admin</a></li>
+                    {% endif %}
+                    <li><a href="/logout" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                {% else %}
+                    <li><a href="/demo">Demo</a></li>
+                    <li><a href="/login" class="btn btn-primary">Login</a></li>
+                    <li><a href="/register" class="btn btn-primary" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);">Sign Up</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <div class="symptom-checker-container">
+        <div class="symptom-checker-header">
+            <h1><i class="fas fa-stethoscope"></i> Symptom Checker</h1>
+            <p>Select symptoms you observe to identify potential cotton diseases</p>
+        </div>
+
+        <div class="checker-layout">
+            <div class="symptoms-section">
+                <h2 class="section-title"><i class="fas fa-list"></i> Select Symptoms</h2>
+                
+                <div class="category-tabs">
+                    <button class="category-tab active" data-category="">All</button>
+                    <button class="category-tab" data-category="leaf">Leaves</button>
+                    <button class="category-tab" data-category="stem">Stems</button>
+                    <button class="category-tab" data-category="boll">Bolls</button>
+                    <button class="category-tab" data-category="root">Roots</button>
+                    <button class="category-tab" data-category="general">General</button>
+                </div>
+
+                <div id="symptoms-list" class="symptoms-list">
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>Loading symptoms...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="results-section">
+                <h2 class="section-title"><i class="fas fa-search"></i> Analysis Results</h2>
+                
+                <div class="selected-symptoms">
+                    <div class="selected-count">
+                        <span id="selected-count">0</span> symptoms selected
+                        <button class="clear-btn" onclick="clearAllSymptoms()" style="float: right; font-size: 0.8rem; padding: 5px 10px;">Clear All</button>
+                    </div>
+                    <div id="selected-symptoms-tags" class="selected-symptoms-tags">
+                        <!-- Selected symptoms tags -->
+                    </div>
+                </div>
+
+                <button id="check-btn" class="check-btn" onclick="checkSymptoms()" disabled>
+                    <i class="fas fa-search-plus"></i> Check Symptoms
+                </button>
+
+                <div id="results-container" class="results-container">
+                    <div id="results-content">
+                        <!-- Results will be displayed here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allSymptoms = [];
+        let selectedSymptoms = [];
+        let currentCategory = '';
+
+        async function loadSymptoms(category = '') {
+            try {
+                const params = category ? `?category=${category}` : '';
+                const response = await fetch(`/api/symptoms${params}`);
+                const data = await response.json();
+                
+                allSymptoms = data.symptoms;
+                renderSymptoms(allSymptoms);
+            } catch (error) {
+                console.error('Error loading symptoms:', error);
+                document.getElementById('symptoms-list').innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>Error loading symptoms. Please try again.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderSymptoms(symptoms) {
+            const container = document.getElementById('symptoms-list');
+            
+            if (symptoms.length === 0) {
+                container.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-search"></i>
+                        <p>No symptoms found in this category.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = symptoms.map(symptom => `
+                <div class="symptom-item ${selectedSymptoms.includes(symptom.id) ? 'selected' : ''}" 
+                     onclick="toggleSymptom(${symptom.id})">
+                    <div class="symptom-checkbox">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="symptom-info">
+                        <div class="symptom-name">${symptom.name}</div>
+                        <div class="symptom-description">${symptom.description}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleSymptom(symptomId) {
+            const index = selectedSymptoms.indexOf(symptomId);
+            if (index > -1) {
+                selectedSymptoms.splice(index, 1);
+            } else {
+                selectedSymptoms.push(symptomId);
+            }
+            
+            updateUI();
+        }
+
+        function updateUI() {
+            // Update symptom list
+            renderSymptoms(allSymptoms);
+            
+            // Update selected count
+            document.getElementById('selected-count').textContent = selectedSymptoms.length;
+            
+            // Update selected symptoms tags
+            const tagsContainer = document.getElementById('selected-symptoms-tags');
+            tagsContainer.innerHTML = selectedSymptoms.map(id => {
+                const symptom = allSymptoms.find(s => s.id === id);
+                return symptom ? `
+                    <div class="symptom-tag">
+                        ${symptom.name}
+                        <i class="fas fa-times" onclick="event.stopPropagation(); toggleSymptom(${id})"></i>
+                    </div>
+                ` : '';
+            }).join('');
+            
+            // Enable/disable check button
+            document.getElementById('check-btn').disabled = selectedSymptoms.length === 0;
+        }
+
+        function clearAllSymptoms() {
+            selectedSymptoms = [];
+            updateUI();
+            document.getElementById('results-container').classList.remove('active');
+        }
+
+        async function checkSymptoms() {
+            if (selectedSymptoms.length === 0) return;
+            
+            const resultsContainer = document.getElementById('results-container');
+            const resultsContent = document.getElementById('results-content');
+            
+            resultsContainer.classList.add('active');
+            resultsContent.innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>Analyzing symptoms...</p>
+                </div>
+            `;
+            
+            try {
+                const response = await fetch('/api/symptom-check', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        symptom_ids: selectedSymptoms
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.results.length === 0) {
+                    resultsContent.innerHTML = `
+                        <div class="no-results">
+                            <i class="fas fa-search"></i>
+                            <p>No matching diseases found based on the selected symptoms.</p>
+                            <p style="font-size: 0.9rem; margin-top: 10px;">Try selecting more symptoms or check the Disease Database for more information.</p>
+                        </div>
+                    `;
+                } else {
+                    resultsContent.innerHTML = data.results.map(result => `
+                        <div class="result-item">
+                            <div class="result-header">
+                                <div class="result-name">${result.disease.name}</div>
+                                <div class="match-score">${result.match_score}% Match</div>
+                            </div>
+                            <div class="result-description">${result.disease.description}</div>
+                            <button onclick="window.location.href='/disease-database'" 
+                                    style="margin-top: 10px; padding: 8px 15px; background: var(--emerald-green); color: white; border: none; border-radius: 5px; cursor: pointer;">
+                                View Full Details
+                            </button>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error checking symptoms:', error);
+                resultsContent.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>Error analyzing symptoms. Please try again.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Category tab click handlers
+        document.querySelectorAll('.category-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentCategory = tab.dataset.category;
+                loadSymptoms(currentCategory);
+            });
+        });
+
+        // Load symptoms on page load
+        loadSymptoms();
+    </script>
+</body>
+</html>

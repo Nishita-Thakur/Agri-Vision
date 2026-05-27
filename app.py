@@ -2256,6 +2256,122 @@ def generate_summary_report():
         return jsonify({'error': str(e)}), 500
 
 
+# --- Disease Database & Symptom Checker ---
+
+@app.route("/disease-database")
+@login_required
+def disease_database():
+    """Disease database page"""
+    return render_template('disease_database.html')
+
+
+@app.route("/symptom-checker")
+@login_required
+def symptom_checker():
+    """Symptom checker page"""
+    return render_template('symptom_checker.html')
+
+
+@app.route("/api/diseases")
+def api_diseases():
+    """API endpoint to get list of diseases"""
+    from models import Disease
+    
+    search = request.args.get('search', '')
+    severity = request.args.get('severity', '')
+    affected_part = request.args.get('affected_part', '')
+    
+    query = Disease.query
+    
+    if search:
+        query = query.filter(Disease.name.ilike(f'%{search}%'))
+    
+    if severity:
+        query = query.filter(Disease.severity == severity)
+    
+    if affected_part:
+        query = query.filter(Disease.affected_parts.ilike(f'%{affected_part}%'))
+    
+    diseases = query.order_by(Disease.name).all()
+    
+    return jsonify({
+        'diseases': [d.to_dict() for d in diseases],
+        'count': len(diseases)
+    })
+
+
+@app.route("/api/diseases/<int:disease_id>")
+def api_disease_detail(disease_id):
+    """API endpoint to get disease details"""
+    from models import Disease
+    
+    disease = Disease.query.get(disease_id)
+    if not disease:
+        return jsonify({'error': 'Disease not found'}), 404
+    
+    return jsonify(disease.to_dict())
+
+
+@app.route("/api/symptoms")
+def api_symptoms():
+    """API endpoint to get list of symptoms"""
+    from models import Symptom
+    
+    category = request.args.get('category', '')
+    
+    query = Symptom.query
+    
+    if category:
+        query = query.filter(Symptom.category == category)
+    
+    symptoms = query.order_by(Symptom.category, Symptom.name).all()
+    
+    return jsonify({
+        'symptoms': [s.to_dict() for s in symptoms],
+        'count': len(symptoms)
+    })
+
+
+@app.route("/api/symptom-check", methods=['POST'])
+def api_symptom_check():
+    """API endpoint to check symptoms and suggest diseases"""
+    from models import Symptom, Disease, DiseaseSymptom
+    
+    data = request.get_json()
+    symptom_ids = data.get('symptom_ids', [])
+    
+    if not symptom_ids:
+        return jsonify({'error': 'No symptoms provided'}), 400
+    
+    # Get diseases associated with the symptoms
+    disease_scores = {}
+    
+    for symptom_id in symptom_ids:
+        associations = DiseaseSymptom.query.filter_by(symptom_id=symptom_id).all()
+        for assoc in associations:
+            if assoc.disease_id not in disease_scores:
+                disease_scores[assoc.disease_id] = 0
+            disease_scores[assoc.disease_id] += assoc.confidence
+    
+    # Sort by score
+    sorted_diseases = sorted(disease_scores.items(), key=lambda x: x[1], reverse=True)
+    
+    # Get top matches
+    results = []
+    for disease_id, score in sorted_diseases[:5]:
+        disease = Disease.query.get(disease_id)
+        if disease:
+            results.append({
+                'disease': disease.to_dict(),
+                'match_score': round(score * 100, 1)
+            })
+    
+    return jsonify({
+        'results': results,
+        'symptom_count': len(symptom_ids)
+    })
+
+
 if __name__ == '__main__':
     logger.info("=" * 60)
     logger.info("Agri-Vision Cotton Analysis System")

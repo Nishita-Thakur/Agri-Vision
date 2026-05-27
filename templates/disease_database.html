@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disease Database - Agri-Vision</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .disease-db-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 120px 20px 40px;
+        }
+
+        .disease-db-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .disease-db-header h1 {
+            font-size: 2.5rem;
+            color: var(--deep-forest);
+            margin-bottom: 10px;
+        }
+
+        .disease-db-header p {
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .filters-section {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-color);
+        }
+
+        .filter-group input,
+        .filter-group select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: var(--emerald-green);
+        }
+
+        .diseases-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .disease-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .disease-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .disease-card-header {
+            background: linear-gradient(135deg, var(--emerald-green) 0%, #27ae60 100%);
+            padding: 20px;
+            color: white;
+        }
+
+        .disease-card-header h3 {
+            margin: 0;
+            font-size: 1.3rem;
+        }
+
+        .disease-card-header .severity {
+            font-size: 0.85rem;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+
+        .disease-card-body {
+            padding: 20px;
+        }
+
+        .disease-card-body p {
+            color: var(--text-color);
+            line-height: 1.6;
+            margin-bottom: 15px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .disease-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 0.85rem;
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+
+        .disease-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .severity-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .severity-low {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .severity-moderate {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .severity-high {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .severity-severe {
+            background: #721c24;
+            color: white;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 20px;
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--emerald-green) 0%, #27ae60 100%);
+            padding: 30px;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .modal-section {
+            margin-bottom: 30px;
+        }
+
+        .modal-section h3 {
+            color: var(--emerald-green);
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .modal-section p {
+            color: var(--text-color);
+            line-height: 1.8;
+            margin-bottom: 10px;
+        }
+
+        .treatments-list {
+            display: grid;
+            gap: 20px;
+        }
+
+        .treatment-item {
+            background: var(--bg-color);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid var(--emerald-green);
+        }
+
+        .treatment-item h4 {
+            color: var(--deep-forest);
+            margin-bottom: 10px;
+        }
+
+        .treatment-item p {
+            color: var(--text-color);
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .treatment-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 0.85rem;
+            color: var(--text-color);
+            opacity: 0.7;
+            margin-top: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-color);
+        }
+
+        .loading i {
+            font-size: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-color);
+        }
+
+        .no-results i {
+            font-size: 60px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">
+                <i class="fas fa-seedling"></i>
+                <span>Agri-Vision</span>
+            </a>
+            <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
+            </button>
+            <ul class="nav-menu" id="nav-menu">
+                <li><a href="/">Home</a></li>
+                {% if current_user.is_authenticated %}
+                    <li><a href="/analyze">Analyze</a></li>
+                    <li><a href="/batch">Batch</a></li>
+                    <li><a href="/disease-map">Disease Map</a></li>
+                    <li><a href="/dashboard">Dashboard</a></li>
+                    <li><a href="/reports">Reports</a></li>
+                    <li><a href="/history">History</a></li>
+                    <li><a href="/disease-database" class="active">Disease Database</a></li>
+                    <li><a href="/symptom-checker">Symptom Checker</a></li>
+                    <li><a href="/profile">Profile</a></li>
+                    {% if current_user.is_researcher() %}
+                        <li><a href="/model-admin">Admin</a></li>
+                    {% endif %}
+                    <li><a href="/logout" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                {% else %}
+                    <li><a href="/demo">Demo</a></li>
+                    <li><a href="/login" class="btn btn-primary">Login</a></li>
+                    <li><a href="/register" class="btn btn-primary" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);">Sign Up</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <div class="disease-db-container">
+        <div class="disease-db-header">
+            <h1><i class="fas fa-book-medical"></i> Cotton Disease Database</h1>
+            <p>Comprehensive information about cotton diseases, symptoms, and treatments</p>
+        </div>
+
+        <div class="filters-section">
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label><i class="fas fa-search"></i> Search Diseases</label>
+                    <input type="text" id="search-input" placeholder="Search by name...">
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-exclamation-triangle"></i> Severity</label>
+                    <select id="severity-filter">
+                        <option value="">All Severities</option>
+                        <option value="low">Low</option>
+                        <option value="moderate">Moderate</option>
+                        <option value="high">High</option>
+                        <option value="severe">Severe</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-leaf"></i> Affected Part</label>
+                    <select id="affected-part-filter">
+                        <option value="">All Parts</option>
+                        <option value="leaves">Leaves</option>
+                        <option value="stems">Stems</option>
+                        <option value="bolls">Bolls</option>
+                        <option value="roots">Roots</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div id="diseases-container" class="diseases-grid">
+            <div class="loading">
+                <i class="fas fa-spinner"></i>
+                <p>Loading diseases...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Disease Detail Modal -->
+    <div id="disease-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-disease-name">Disease Name</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Content loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allDiseases = [];
+
+        async function loadDiseases() {
+            try {
+                const search = document.getElementById('search-input').value;
+                const severity = document.getElementById('severity-filter').value;
+                const affectedPart = document.getElementById('affected-part-filter').value;
+
+                const params = new URLSearchParams();
+                if (search) params.append('search', search);
+                if (severity) params.append('severity', severity);
+                if (affectedPart) params.append('affected_part', affectedPart);
+
+                const response = await fetch(`/api/diseases?${params}`);
+                const data = await response.json();
+                
+                allDiseases = data.diseases;
+                renderDiseases(allDiseases);
+            } catch (error) {
+                console.error('Error loading diseases:', error);
+                document.getElementById('diseases-container').innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>Error loading diseases. Please try again.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderDiseases(diseases) {
+            const container = document.getElementById('diseases-container');
+            
+            if (diseases.length === 0) {
+                container.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-search"></i>
+                        <p>No diseases found matching your criteria.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = diseases.map(disease => `
+                <div class="disease-card" onclick="showDiseaseDetail(${disease.id})">
+                    <div class="disease-card-header">
+                        <h3>${disease.name}</h3>
+                        <div class="severity">
+                            <span class="severity-badge severity-${disease.severity}">${disease.severity.toUpperCase()}</span>
+                        </div>
+                    </div>
+                    <div class="disease-card-body">
+                        <p>${disease.description}</p>
+                        <div class="disease-meta">
+                            <span><i class="fas fa-leaf"></i> ${disease.affected_parts || 'Various'}</span>
+                            <span><i class="fas fa-tachometer-alt"></i> ${disease.spread_rate} spread</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function showDiseaseDetail(diseaseId) {
+            try {
+                const response = await fetch(`/api/diseases/${diseaseId}`);
+                const disease = await response.json();
+                
+                document.getElementById('modal-disease-name').textContent = disease.name;
+                
+                let treatmentsHtml = '';
+                if (disease.treatments && disease.treatments.length > 0) {
+                    treatmentsHtml = disease.treatments.map(treatment => `
+                        <div class="treatment-item">
+                            <h4>${treatment.name}</h4>
+                            <p><strong>Type:</strong> ${treatment.type}</p>
+                            <p>${treatment.description}</p>
+                            ${treatment.dosage ? `<p><strong>Dosage:</strong> ${treatment.dosage}</p>` : ''}
+                            ${treatment.timing ? `<p><strong>Timing:</strong> ${treatment.timing}</p>` : ''}
+                            ${treatment.application_method ? `<p><strong>Application:</strong> ${treatment.application_method}</p>` : ''}
+                            <div class="treatment-meta">
+                                <span><i class="fas fa-check-circle"></i> Effectiveness: ${treatment.effectiveness}</span>
+                                <span><i class="fas fa-dollar-sign"></i> Cost: ${treatment.cost}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    treatmentsHtml = '<p>No treatments available.</p>';
+                }
+
+                document.getElementById('modal-body').innerHTML = `
+                    <div class="modal-section">
+                        <h3><i class="fas fa-info-circle"></i> Description</h3>
+                        <p>${disease.description}</p>
+                    </div>
+                    
+                    ${disease.scientific_name ? `
+                    <div class="modal-section">
+                        <h3><i class="fas fa-flask"></i> Scientific Name</h3>
+                        <p><em>${disease.scientific_name}</em></p>
+                    </div>
+                    ` : ''}
+                    
+                    ${disease.causes ? `
+                    <div class="modal-section">
+                        <h3><i class="fas fa-bug"></i> Causes</h3>
+                        <p>${disease.causes}</p>
+                    </div>
+                    ` : ''}
+                    
+                    ${disease.symptoms ? `
+                    <div class="modal-section">
+                        <h3><i class="fas fa-stethoscope"></i> Symptoms</h3>
+                        <p>${disease.symptoms}</p>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="modal-section">
+                        <h3><i class="fas fa-chart-line"></i> Disease Characteristics</h3>
+                        <p><strong>Severity:</strong> <span class="severity-badge severity-${disease.severity}">${disease.severity.toUpperCase()}</span></p>
+                        <p><strong>Spread Rate:</strong> ${disease.spread_rate}</p>
+                        <p><strong>Affected Parts:</strong> ${disease.affected_parts || 'Various'}</p>
+                    </div>
+                    
+                    ${disease.favorable_conditions ? `
+                    <div class="modal-section">
+                        <h3><i class="fas fa-cloud-sun"></i> Favorable Conditions</h3>
+                        <p>${disease.favorable_conditions}</p>
+                    </div>
+                    ` : ''}
+                    
+                    ${disease.prevention ? `
+                    <div class="modal-section">
+                        <h3><i class="fas fa-shield-alt"></i> Prevention</h3>
+                        <p>${disease.prevention}</p>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="modal-section">
+                        <h3><i class="fas fa-pills"></i> Treatments</h3>
+                        <div class="treatments-list">
+                            ${treatmentsHtml}
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('disease-modal').classList.add('active');
+            } catch (error) {
+                console.error('Error loading disease details:', error);
+                alert('Error loading disease details. Please try again.');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('disease-modal').classList.remove('active');
+        }
+
+        // Event listeners
+        document.getElementById('search-input').addEventListener('input', loadDiseases);
+        document.getElementById('severity-filter').addEventListener('change', loadDiseases);
+        document.getElementById('affected-part-filter').addEventListener('change', loadDiseases);
+
+        // Close modal on outside click
+        document.getElementById('disease-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'disease-modal') {
+                closeModal();
+            }
+        });
+
+        // Load diseases on page load
+        loadDiseases();
+    </script>
+</body>
+</html>

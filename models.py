@@ -171,3 +171,114 @@ class AnalysisResult(db.Model):
             'error_message': self.error_message,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
+
+
+class Disease(db.Model):
+    """Model for cotton diseases"""
+    __tablename__ = 'diseases'
+    
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(100), unique=True, nullable=False, index=True)
+    scientific_name = db.Column(db.String(200), nullable=True)
+    description = db.Column(db.Text, nullable=False)
+    causes = db.Column(db.Text, nullable=True)
+    symptoms = db.Column(db.Text, nullable=True)
+    severity = db.Column(db.String(20), default='moderate')  # low, moderate, high, severe
+    spread_rate = db.Column(db.String(20), default='moderate')  # slow, moderate, fast
+    affected_parts = db.Column(db.String(200), nullable=True)  # leaves, stems, bolls, roots
+    favorable_conditions = db.Column(db.Text, nullable=True)
+    prevention = db.Column(db.Text, nullable=True)
+    image_url = db.Column(db.String(500), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    treatments = db.relationship('Treatment', backref='disease', lazy=True, cascade='all, delete-orphan')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'scientific_name': self.scientific_name,
+            'description': self.description,
+            'causes': self.causes,
+            'symptoms': self.symptoms,
+            'severity': self.severity,
+            'spread_rate': self.spread_rate,
+            'affected_parts': self.affected_parts,
+            'favorable_conditions': self.favorable_conditions,
+            'prevention': self.prevention,
+            'image_url': self.image_url,
+            'treatments': [t.to_dict() for t in self.treatments]
+        }
+
+
+class Treatment(db.Model):
+    """Model for disease treatments"""
+    __tablename__ = 'treatments'
+    
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    disease_id = db.Column(db.Integer, db.ForeignKey('diseases.id'), nullable=False)
+    name = db.Column(db.String(200), nullable=False)
+    type = db.Column(db.String(50), nullable=False)  # chemical, biological, cultural, integrated
+    description = db.Column(db.Text, nullable=False)
+    application_method = db.Column(db.Text, nullable=True)
+    dosage = db.Column(db.String(200), nullable=True)
+    timing = db.Column(db.String(200), nullable=True)
+    effectiveness = db.Column(db.String(20), default='high')  # low, moderate, high
+    cost = db.Column(db.String(20), default='moderate')  # low, moderate, high
+    precautions = db.Column(db.Text, nullable=True)
+    resistance_management = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'disease_id': self.disease_id,
+            'name': self.name,
+            'type': self.type,
+            'description': self.description,
+            'application_method': self.application_method,
+            'dosage': self.dosage,
+            'timing': self.timing,
+            'effectiveness': self.effectiveness,
+            'cost': self.cost,
+            'precautions': self.precautions,
+            'resistance_management': self.resistance_management
+        }
+
+
+class Symptom(db.Model):
+    """Model for disease symptoms for symptom checker"""
+    __tablename__ = 'symptoms'
+    
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(200), unique=True, nullable=False, index=True)
+    description = db.Column(db.Text, nullable=False)
+    category = db.Column(db.String(50), nullable=False)  # leaf, stem, boll, root, general
+    severity_indicator = db.Column(db.String(20), default='moderate')  # mild, moderate, severe
+    image_url = db.Column(db.String(500), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Many-to-many relationship with diseases
+    associated_diseases = db.relationship('Disease', secondary='disease_symptoms', backref='related_symptoms')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'category': self.category,
+            'severity_indicator': self.severity_indicator,
+            'image_url': self.image_url
+        }
+
+
+class DiseaseSymptom(db.Model):
+    """Association table for diseases and symptoms"""
+    __tablename__ = 'disease_symptoms'
+    
+    disease_id = db.Column(db.Integer, db.ForeignKey('diseases.id'), primary_key=True)
+    symptom_id = db.Column(db.Integer, db.ForeignKey('symptoms.id'), primary_key=True)
+    confidence = db.Column(db.Float, default=0.5)  # How strongly this symptom indicates the disease
