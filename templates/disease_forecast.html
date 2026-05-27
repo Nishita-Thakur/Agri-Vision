@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disease Forecast - Agri-Vision</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .forecast-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 120px 20px 40px;
+        }
+
+        .forecast-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .forecast-header h1 {
+            font-size: 2.5rem;
+            color: var(--deep-forest);
+            margin-bottom: 10px;
+        }
+
+        .forecast-header p {
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .location-input-section {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .location-input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            align-items: end;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-color);
+        }
+
+        .input-group input {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--emerald-green);
+        }
+
+        .get-forecast-btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, var(--emerald-green) 0%, #27ae60 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .get-forecast-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(46, 139, 87, 0.3);
+        }
+
+        .get-forecast-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .forecast-dashboard {
+            display: none;
+        }
+
+        .forecast-dashboard.active {
+            display: block;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .risk-card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .risk-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .risk-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .risk-card-header h3 {
+            margin: 0;
+            color: var(--deep-forest);
+            font-size: 1.2rem;
+        }
+
+        .risk-badge {
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .risk-low {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .risk-moderate {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .risk-high {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .risk-severe {
+            background: #721c24;
+            color: white;
+        }
+
+        .risk-meter {
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .risk-meter-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #27ae60 0%, #f39c12 50%, #e74c3c 100%);
+            transition: width 0.5s ease;
+        }
+
+        .risk-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--deep-forest);
+            margin-bottom: 10px;
+        }
+
+        .risk-label {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+
+        .forecast-chart {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .chart-header {
+            margin-bottom: 20px;
+        }
+
+        .chart-header h3 {
+            color: var(--deep-forest);
+            margin-bottom: 5px;
+        }
+
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+
+        .recommendations-section {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .recommendations-section h3 {
+            color: var(--deep-forest);
+            margin-bottom: 20px;
+        }
+
+        .recommendation-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 15px;
+            background: var(--bg-color);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--emerald-green);
+        }
+
+        .recommendation-item i {
+            color: var(--emerald-green);
+            font-size: 1.2rem;
+            margin-top: 3px;
+        }
+
+        .recommendation-item p {
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .weather-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .weather-summary h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.3rem;
+        }
+
+        .weather-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+
+        .weather-item {
+            text-align: center;
+        }
+
+        .weather-item i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .weather-item .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .weather-item .label {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-color);
+        }
+
+        .loading i {
+            font-size: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .disease-selector {
+            margin-bottom: 20px;
+        }
+
+        .disease-selector select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--bg-color);
+            color: var(--text-color);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">
+                <i class="fas fa-seedling"></i>
+                <span>Agri-Vision</span>
+            </a>
+            <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
+            </button>
+            <ul class="nav-menu" id="nav-menu">
+                <li><a href="/">Home</a></li>
+                {% if current_user.is_authenticated %}
+                    <li><a href="/analyze">Analyze</a></li>
+                    <li><a href="/batch">Batch</a></li>
+                    <li><a href="/disease-map">Disease Map</a></li>
+                    <li><a href="/dashboard">Dashboard</a></li>
+                    <li><a href="/reports">Reports</a></li>
+                    <li><a href="/disease-database">Disease DB</a></li>
+                    <li><a href="/symptom-checker">Symptom Checker</a></li>
+                    <li><a href="/disease-forecast" class="active">Disease Forecast</a></li>
+                    <li><a href="/history">History</a></li>
+                    <li><a href="/profile">Profile</a></li>
+                    {% if current_user.is_researcher() %}
+                        <li><a href="/model-admin">Admin</a></li>
+                    {% endif %}
+                    <li><a href="/logout" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                {% else %}
+                    <li><a href="/demo">Demo</a></li>
+                    <li><a href="/login" class="btn btn-primary">Login</a></li>
+                    <li><a href="/register" class="btn btn-primary" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);">Sign Up</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <div class="forecast-container">
+        <div class="forecast-header">
+            <h1><i class="fas fa-cloud-sun-rain"></i> Disease Forecast Dashboard</h1>
+            <p>Predict disease outbreaks 7-14 days in advance using weather data</p>
+        </div>
+
+        <div class="location-input-section">
+            <div class="location-input-grid">
+                <div class="input-group">
+                    <label><i class="fas fa-map-marker-alt"></i> Location Name</label>
+                    <input type="text" id="location-name" placeholder="e.g., Punjab, India" value="Punjab, India">
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-globe"></i> Latitude</label>
+                    <input type="number" id="latitude" placeholder="e.g., 30.3753" step="0.0001" value="30.3753">
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-globe"></i> Longitude</label>
+                    <input type="number" id="longitude" placeholder="e.g., 76.7821" step="0.0001" value="76.7821">
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-calendar"></i> Forecast Days</label>
+                    <input type="number" id="forecast-days" placeholder="7-14" min="7" max="14" value="14">
+                </div>
+                <button class="get-forecast-btn" onclick="getForecast()">
+                    <i class="fas fa-search"></i> Get Forecast
+                </button>
+            </div>
+        </div>
+
+        <div id="error-container"></div>
+
+        <div id="loading-container" class="loading" style="display: none;">
+            <i class="fas fa-spinner"></i>
+            <p>Loading weather forecast and disease predictions...</p>
+        </div>
+
+        <div id="forecast-dashboard" class="forecast-dashboard">
+            <div class="weather-summary">
+                <h3><i class="fas fa-cloud"></i> Weather Summary for Next 7 Days</h3>
+                <div class="weather-grid" id="weather-summary">
+                    <!-- Weather data will be loaded here -->
+                </div>
+            </div>
+
+            <div class="disease-selector">
+                <label style="font-weight: 600; margin-bottom: 8px; display: block; color: var(--text-color);">
+                    <i class="fas fa-virus"></i> Select Disease for Detailed Forecast
+                </label>
+                <select id="disease-select" onchange="loadDiseaseForecast()">
+                    <option value="">-- Select a disease --</option>
+                    <option value="bacterial_blight">Bacterial Blight</option>
+                    <option value="fusarium_wilt">Fusarium Wilt</option>
+                    <option value="verticillium_wilt">Verticillium Wilt</option>
+                    <option value="powdery_mildew">Powdery Mildew</option>
+                    <option value="cotton_root_rot">Cotton Root Rot</option>
+                    <option value="alternaria_leaf_spot">Alternaria Leaf Spot</option>
+                    <option value="cotton_boll_rot">Cotton Boll Rot</option>
+                    <option value="red_leaf_spot">Red Leaf Spot</option>
+                </select>
+            </div>
+
+            <div class="dashboard-grid" id="risk-cards">
+                <!-- Risk cards will be loaded here -->
+            </div>
+
+            <div class="forecast-chart" id="forecast-chart-section" style="display: none;">
+                <div class="chart-header">
+                    <h3><i class="fas fa-chart-line"></i> 14-Day Risk Trend</h3>
+                    <p id="chart-disease-name" style="color: var(--text-color); opacity: 0.7;"></p>
+                </div>
+                <div class="chart-container" id="risk-chart">
+                    <!-- Chart will be rendered here -->
+                </div>
+            </div>
+
+            <div class="recommendations-section" id="recommendations-section" style="display: none;">
+                <h3><i class="fas fa-lightbulb"></i> Recommendations</h3>
+                <div id="recommendations-list">
+                    <!-- Recommendations will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentForecastData = null;
+        let currentPredictions = null;
+
+        async function getForecast() {
+            const locationName = document.getElementById('location-name').value;
+            const lat = parseFloat(document.getElementById('latitude').value);
+            const lon = parseFloat(document.getElementById('longitude').value);
+            const days = parseInt(document.getElementById('forecast-days').value);
+
+            if (!lat || !lon) {
+                showError('Please enter valid latitude and longitude');
+                return;
+            }
+
+            if (days < 7 || days > 14) {
+                showError('Forecast days must be between 7 and 14');
+                return;
+            }
+
+            document.getElementById('loading-container').style.display = 'block';
+            document.getElementById('forecast-dashboard').classList.remove('active');
+            document.getElementById('error-container').innerHTML = '';
+
+            try {
+                const response = await fetch(`/api/weather-forecast?lat=${lat}&lon=${lon}&location=${encodeURIComponent(locationName)}&days=${days}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to fetch forecast');
+                }
+
+                currentForecastData = data.weather_forecast;
+                currentPredictions = data.disease_predictions;
+
+                displayForecast(data);
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                document.getElementById('loading-container').style.display = 'none';
+            }
+        }
+
+        function displayForecast(data) {
+            document.getElementById('forecast-dashboard').classList.add('active');
+
+            // Display weather summary
+            displayWeatherSummary(data.weather_forecast.slice(0, 7));
+
+            // Display risk cards for all diseases
+            displayRiskCards(data.disease_predictions);
+        }
+
+        function displayWeatherSummary(weatherData) {
+            const container = document.getElementById('weather-summary');
+            
+            // Calculate averages
+            const avgTemp = weatherData.reduce((sum, day) => sum + (day.temperature_avg || 0), 0) / weatherData.length;
+            const avgHumidity = weatherData.reduce((sum, day) => sum + (day.humidity || 0), 0) / weatherData.length;
+            const totalRainfall = weatherData.reduce((sum, day) => sum + (day.rainfall || 0), 0);
+            const avgWind = weatherData.reduce((sum, day) => sum + (day.wind_speed || 0), 0) / weatherData.length;
+
+            container.innerHTML = `
+                <div class="weather-item">
+                    <i class="fas fa-thermometer-half"></i>
+                    <div class="value">${avgTemp.toFixed(1)}°C</div>
+                    <div class="label">Avg Temp</div>
+                </div>
+                <div class="weather-item">
+                    <i class="fas fa-tint"></i>
+                    <div class="value">${avgHumidity.toFixed(0)}%</div>
+                    <div class="label">Avg Humidity</div>
+                </div>
+                <div class="weather-item">
+                    <i class="fas fa-cloud-rain"></i>
+                    <div class="value">${totalRainfall.toFixed(1)}mm</div>
+                    <div class="label">Total Rain</div>
+                </div>
+                <div class="weather-item">
+                    <i class="fas fa-wind"></i>
+                    <div class="value">${avgWind.toFixed(1)}km/h</div>
+                    <div class="label">Avg Wind</div>
+                </div>
+            `;
+        }
+
+        function displayRiskCards(predictions) {
+            const container = document.getElementById('risk-cards');
+            
+            const diseaseNames = {
+                'bacterial_blight': 'Bacterial Blight',
+                'fusarium_wilt': 'Fusarium Wilt',
+                'verticillium_wilt': 'Verticillium Wilt',
+                'powdery_mildew': 'Powdery Mildew',
+                'cotton_root_rot': 'Cotton Root Rot',
+                'alternaria_leaf_spot': 'Alternaria Leaf Spot',
+                'cotton_boll_rot': 'Cotton Boll Rot',
+                'red_leaf_spot': 'Red Leaf Spot'
+            };
+
+            container.innerHTML = Object.entries(predictions).map(([diseaseKey, diseasePredictions]) => {
+                const latestPrediction = diseasePredictions[0];
+                const riskLevel = latestPrediction.risk_level;
+                const riskScore = latestPrediction.risk_score;
+                const displayName = diseaseNames[diseaseKey] || diseaseKey;
+
+                return `
+                    <div class="risk-card">
+                        <div class="risk-card-header">
+                            <h3>${displayName}</h3>
+                            <span class="risk-badge risk-${riskLevel}">${riskLevel.toUpperCase()}</span>
+                        </div>
+                        <div class="risk-value">${riskScore.toFixed(0)}%</div>
+                        <div class="risk-label">Current Risk Score</div>
+                        <div class="risk-meter">
+                            <div class="risk-meter-fill" style="width: ${riskScore}%"></div>
+                        </div>
+                        <div class="risk-label">
+                            <i class="fas fa-calendar-alt"></i> Next 7 days average: 
+                            ${calculateAverageRisk(diseasePredictions.slice(0, 7)).toFixed(0)}%
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function calculateAverageRisk(predictions) {
+            if (!predictions || predictions.length === 0) return 0;
+            return predictions.reduce((sum, p) => sum + p.risk_score, 0) / predictions.length;
+        }
+
+        async function loadDiseaseForecast() {
+            const diseaseName = document.getElementById('disease-select').value;
+            
+            if (!diseaseName) {
+                document.getElementById('forecast-chart-section').style.display = 'none';
+                document.getElementById('recommendations-section').style.display = 'none';
+                return;
+            }
+
+            const lat = parseFloat(document.getElementById('latitude').value);
+            const lon = parseFloat(document.getElementById('longitude').value);
+            const days = parseInt(document.getElementById('forecast-days').value);
+
+            try {
+                const response = await fetch(`/api/disease-prediction/${diseaseName}?lat=${lat}&lon=${lon}&days=${days}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to fetch disease prediction');
+                }
+
+                displayDiseaseForecast(data);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        function displayDiseaseForecast(data) {
+            // Display chart
+            document.getElementById('forecast-chart-section').style.display = 'block';
+            document.getElementById('chart-disease-name').textContent = data.disease.replace('_', ' ').title();
+            renderRiskChart(data.predictions);
+
+            // Display recommendations
+            document.getElementById('recommendations-section').style.display = 'block';
+            displayRecommendations(data.recommendations);
+        }
+
+        function renderRiskChart(predictions) {
+            const container = document.getElementById('risk-chart');
+            
+            const maxRisk = Math.max(...predictions.map(p => p.risk_score));
+            const barWidth = 100 / predictions.length;
+
+            container.innerHTML = `
+                <div style="display: flex; align-items: flex-end; height: 100%; gap: 5px;">
+                    ${predictions.map(p => {
+                        const height = (p.risk_score / maxRisk) * 100;
+                        const riskColor = getRiskColor(p.risk_level);
+                        return `
+                            <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                                <div style="width: 100%; height: ${height}%; background: ${riskColor}; border-radius: 4px 4px 0 0; transition: height 0.3s ease;" title="${p.risk_score.toFixed(0)}%"></div>
+                                <div style="font-size: 0.7rem; margin-top: 5px; color: var(--text-color); text-align: center;">
+                                    ${new Date(p.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function getRiskColor(riskLevel) {
+            switch(riskLevel) {
+                case 'low': return '#27ae60';
+                case 'moderate': return '#f39c12';
+                case 'high': return '#e67e22';
+                case 'severe': return '#e74c3c';
+                default: return '#95a5a6';
+            }
+        }
+
+        function displayRecommendations(recommendations) {
+            const container = document.getElementById('recommendations-list');
+            
+            container.innerHTML = recommendations.map(rec => `
+                <div class="recommendation-item">
+                    <i class="fas fa-check-circle"></i>
+                    <p>${rec}</p>
+                </div>
+            `).join('');
+        }
+
+        function showError(message) {
+            document.getElementById('error-container').innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i> ${message}
+                </div>
+            `;
+        }
+
+        // Load forecast on page load with default values
+        window.onload = function() {
+            getForecast();
+        };
+    </script>
+</body>
+</html>

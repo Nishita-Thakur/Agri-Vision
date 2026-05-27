@@ -2372,6 +2372,195 @@ def api_symptom_check():
     })
 
 
+# --- Disease Forecast & Weather Prediction ---
+
+@app.route("/disease-forecast")
+@login_required
+def disease_forecast():
+    """Disease forecast page"""
+    return render_template('disease_forecast.html')
+
+
+@app.route("/api/weather-forecast")
+def api_weather_forecast():
+    """API endpoint to get weather forecast for a location"""
+    from services.weather_service import get_weather_forecast
+    from services.disease_prediction_service import DiseasePredictor
+    
+    lat = request.args.get('lat', type=float)
+    lon = request.args.get('lon', type=float)
+    location_name = request.args.get('location', 'Unknown')
+    days = request.args.get('days', 14, type=int)
+    
+    if not lat or not lon:
+        return jsonify({'error': 'Latitude and longitude required'}), 400
+    
+    try:
+        # Get weather forecast
+        forecast_data = get_weather_forecast(lat, lon, days)
+        
+        if not forecast_data:
+            return jsonify({'error': 'Failed to fetch weather forecast'}), 500
+        
+        # Get disease predictions
+        predictor = DiseasePredictor()
+        predictions = predictor.get_all_disease_predictions(forecast_data['forecast'])
+        
+        return jsonify({
+            'location': location_name,
+            'lat': lat,
+            'lon': lon,
+            'weather_forecast': forecast_data['forecast'],
+            'disease_predictions': predictions
+        })
+    except Exception as e:
+        logger.error(f"Error fetching weather forecast: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route("/api/disease-prediction/<disease_name>")
+def api_disease_prediction(disease_name):
+    """API endpoint to get prediction for a specific disease"""
+    from services.weather_service import get_weather_forecast
+    from services.disease_prediction_service import DiseasePredictor
+    
+    lat = request.args.get('lat', type=float)
+    lon = request.args.get('lon', type=float)
+    days = request.args.get('days', 14, type=int)
+    
+    if not lat or not lon:
+        return jsonify({'error': 'Latitude and longitude required'}), 400
+    
+    try:
+        # Get weather forecast
+        forecast_data = get_weather_forecast(lat, lon, days)
+        
+        if not forecast_data:
+            return jsonify({'error': 'Failed to fetch weather forecast'}), 500
+        
+        # Get prediction for specific disease
+        predictor = DiseasePredictor()
+        predictions = predictor.predict_disease_risk(forecast_data['forecast'], disease_name)
+        
+        # Get high risk days
+        high_risk_days = predictor.get_high_risk_days(predictions)
+        
+        # Get recommendations
+        if predictions:
+            latest_risk = predictions[0]['risk_level']
+            recommendations = predictor.generate_recommendations(disease_name, latest_risk)
+        else:
+            recommendations = []
+        
+        return jsonify({
+            'disease': disease_name,
+            'predictions': predictions,
+            'high_risk_days': high_risk_days,
+            'recommendations': recommendations
+        })
+    except Exception as e:
+        logger.error(f"Error getting disease prediction: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route("/api/historical-patterns")
+def api_historical_patterns():
+    """API endpoint to analyze historical disease patterns"""
+    from models import DiseaseOccurrence
+    from services.disease_prediction_service import HistoricalPatternAnalyzer
+    
+    location = request.args.get('location', '')
+    disease_id = request.args.get('disease_id', type=int)
+    
+    try:
+        query = DiseaseOccurrence.query
+        
+        if location:
+            query = query.filter(DiseaseOccurrence.location_name.ilike(f'%{location}%'))
+        
+        if disease_id:
+            query = query.filter(DiseaseOccurrence.disease_id == disease_id)
+        
+        occurrences = query.order_by(DiseaseOccurrence.occurrence_date.desc()).limit(1000).all()
+        occurrences_data = [o.to_dict() for o in occurrences]
+        
+        analyzer = HistoricalPatternAnalyzer()
+        
+        # Analyze seasonal patterns
+        seasonal_patterns = analyzer.analyze_seasonal_patterns(occurrences_data)
+        
+        # Analyze regional patterns
+        regional_patterns = analyzer.get_regional_patterns(occurrences_data)
+        
+        return jsonify({
+            'seasonal_patterns': seasonal_patterns,
+            'regional_patterns': regional_patterns,
+            'total_occurrences': len(occurrences_data)
+        })
+    except Exception as e:
+        logger.error(f"Error analyzing historical patterns: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route("/api/report-disease-occurrence", methods=['POST'])
+@login_required
+def api_report_disease_occurrence():
+    """API endpoint to report a disease occurrence (for ML training)"""
+    from models import DiseaseOccurrence, Disease
+    
+    data = request.get_json()
+    
+    disease_id = data.get('disease_id')
+    location_name = data.get('location_name')
+    latitude = data.get('latitude')
+    longitude = data.get('longitude')
+    occurrence_date = data.get('occurrence_date')
+    severity = data.get('severity', 'moderate')
+    affected_area = data.get('affected_area')
+    notes = data.get('notes')
+    
+    if not disease_id or not location_name or not occurrence_date:
+        return jsonify({'error': 'disease_id, location_name, and occurrence_date required'}), 400
+    
+    try:
+        # Validate disease exists
+        disease = Disease.query.get(disease_id)
+        if not disease:
+            return jsonify({'error': 'Disease not found'}), 404
+        
+        # Parse date
+        from datetime import datetime
+        try:
+            occurrence_date = datetime.strptime(occurrence_date, '%Y-%m-%d').date()
+        except ValueError:
+            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
+        
+        # Create occurrence record
+        occurrence = DiseaseOccurrence(
+            disease_id=disease_id,
+            location_name=location_name,
+            latitude=latitude,
+            longitude=longitude,
+            occurrence_date=occurrence_date,
+            severity=severity,
+            affected_area=affected_area,
+            reported_by=current_user.id,
+            notes=notes
+        )
+        
+        db.session.add(occurrence)
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Disease occurrence reported successfully',
+            'occurrence_id': occurrence.id
+        })
+    except Exception as e:
+        logger.error(f"Error reporting disease occurrence: {e}")
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     logger.info("=" * 60)
     logger.info("Agri-Vision Cotton Analysis System")

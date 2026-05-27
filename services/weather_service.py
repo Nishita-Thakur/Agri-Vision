@@ -156,6 +156,78 @@ def get_weather_open_meteo(lat: float, lon: float) -> Optional[dict]:
     return None
 
 
+def get_weather_forecast(lat: float, lon: float, days: int = 14) -> Optional[dict]:
+    """
+    Fetch weather forecast for 7-14 days from Open-Meteo (free, no API key).
+    Returns daily forecast data suitable for disease prediction.
+    """
+    try:
+        params = {
+            "latitude": lat,
+            "longitude": lon,
+            "daily": [
+                "temperature_2m_max",
+                "temperature_2m_min",
+                "temperature_2m_mean",
+                "relative_humidity_2m_mean",
+                "precipitation_sum",
+                "wind_speed_10m_max",
+                "uv_index_max",
+            ],
+            "timezone": "auto",
+            "forecast_days": days,
+        }
+        resp = session.get(OPEN_METEO_URL, params=params, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+        if not isinstance(data, dict):
+            logger.error("Malformed Open-Meteo forecast response")
+            return None
+        
+        daily = data.get("daily")
+        if not isinstance(daily, dict):
+            logger.error("Missing 'daily' forecast data in Open-Meteo response")
+            return None
+
+        # Structure forecast data by date
+        forecast = []
+        dates = daily.get("time", [])
+        for i, date in enumerate(dates):
+            forecast.append({
+                "date": date,
+                "temperature_max": daily.get("temperature_2m_max", [])[i] if i < len(daily.get("temperature_2m_max", [])) else None,
+                "temperature_min": daily.get("temperature_2m_min", [])[i] if i < len(daily.get("temperature_2m_min", [])) else None,
+                "temperature_avg": daily.get("temperature_2m_mean", [])[i] if i < len(daily.get("temperature_2m_mean", [])) else None,
+                "humidity": daily.get("relative_humidity_2m_mean", [])[i] if i < len(daily.get("relative_humidity_2m_mean", [])) else None,
+                "rainfall": daily.get("precipitation_sum", [])[i] if i < len(daily.get("precipitation_sum", [])) else None,
+                "wind_speed": daily.get("wind_speed_10m_max", [])[i] if i < len(daily.get("wind_speed_10m_max", [])) else None,
+                "uv_index": daily.get("uv_index_max", [])[i] if i < len(daily.get("uv_index_max", [])) else None,
+            })
+
+        return {
+            "source": "open-meteo",
+            "lat": lat,
+            "lon": lon,
+            "forecast": forecast
+        }
+    except Timeout:
+        logger.error("Open-Meteo forecast request timed out")
+
+    except ConnectionError:
+        logger.error("Connection error while fetching Open-Meteo forecast data")
+
+    except HTTPError as e:
+        logger.error(f"Open-Meteo forecast HTTP error: {e}")
+
+    except JSONDecodeError:
+        logger.error("Invalid JSON received from Open-Meteo forecast API")
+
+    except RequestException as e:
+        logger.error(f"Open-Meteo forecast request failed: {e}")
+
+    return None
+
+
 def get_weather_openweathermap(lat: float, lon: float, api_key: str) -> Optional[dict]:
     """
     Fetch current weather from OpenWeatherMap (requires API key).
