@@ -1,6 +1,8 @@
 import base64
 import io
 import json
+from flask_login import login_user
+from models import User
 
 import cv2
 import numpy as np
@@ -16,7 +18,16 @@ import app
 def client():
     app.app.config["TESTING"] = True
     app.app.config["UPLOAD_FOLDER"] = "./static/uploads"
+    app.app.config["SECRET_KEY"] = "test-secret"
     with app.app.test_client() as client:
+        with app.app.app_context():
+            # Create a dummy user for auth
+            test_user = User(id=1, email="test@example.com", full_name="Test User")
+            # In a real app, you might need to commit this to the DB if using SQLite
+            # For testing, we can mock current_user or login
+            with client.session_transaction() as sess:
+                sess['_user_id'] = '1'
+                sess['_fresh'] = True
         yield client
 
 
