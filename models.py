@@ -9,6 +9,10 @@ import uuid
 
 db = SQLAlchemy()
 
+ROLE_FARMER = "farmer"
+ROLE_RESEARCHER = "researcher"
+ROLE_ADMIN = "admin"
+
 
 class User(UserMixin, db.Model):
     """User model for authentication"""
@@ -19,7 +23,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     full_name = db.Column(db.String(255), nullable=False)
-    role = db.Column(db.String(20), default="farmer")  # farmer, researcher, admin
+    role = db.Column(db.String(20), default=ROLE_FARMER)  # farmer, researcher, admin
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime, nullable=True)
     is_active = db.Column(db.Boolean, default=True)
@@ -43,11 +47,11 @@ class User(UserMixin, db.Model):
 
     def is_admin(self):
         """Check if user is admin"""
-        return self.role == "admin"
+        return self.role == ROLE_ADMIN
 
     def is_researcher(self):
         """Check if user is researcher or admin"""
-        return self.role in ["researcher", "admin"]
+        return self.role in [ROLE_RESEARCHER, ROLE_ADMIN]
 
     def to_dict(self):
         return {

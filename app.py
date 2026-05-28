@@ -1072,8 +1072,14 @@ def admin_dashboard():
 
 
 @app.route("/admin/models", methods=["GET"])
+@login_required
 def list_models():
     """List all registered models with their metadata"""
+
+    if not current_user.is_researcher():
+        logger.warning(f"Unauthorized admin access attempt by user: {getattr(current_user, 'id', None)}")
+        return jsonify({"error": "Access denied. Researchers/Admins only."}), 403
+
     model_type = request.args.get("type")
     try:
         models = registry.list_models(model_type)
@@ -1091,8 +1097,13 @@ def list_models():
 
 
 @app.route("/admin/models/active", methods=["GET"])
+@login_required
 def get_active_models():
     """Get currently active models"""
+    if not current_user.is_researcher():
+        logger.warning(f"Unauthorized admin access attempt by user: {getattr(current_user, 'id', None)}")
+        return jsonify({"error": "Access denied. Researchers/Admins only."}), 403
+
     try:
         active_resnet = registry.get_active_model("resnet")
         active_yolo = registry.get_active_model("yolo")
@@ -1111,8 +1122,13 @@ def get_active_models():
 
 
 @app.route("/admin/models/register", methods=["POST"])
+@login_required
 def register_model():
     """Register a new model version"""
+    if not current_user.is_researcher():
+        logger.warning(f"Unauthorized admin access attempt by user: {getattr(current_user, 'id', None)}")
+        return jsonify({"error": "Access denied. Researchers/Admins only."}), 403
+
     try:
         data = request.get_json()
         required_fields = ["model_type", "version", "path"]
@@ -1153,8 +1169,13 @@ def register_model():
 
 
 @app.route("/admin/models/activate", methods=["POST"])
+@login_required
 def activate_model():
     """Set a model version as active"""
+    if not current_user.is_researcher():
+        logger.warning(f"Unauthorized admin access attempt by user: {getattr(current_user, 'id', None)}")
+        return jsonify({"error": "Access denied. Researchers/Admins only."}), 403
+
     try:
         data = request.get_json()
         required_fields = ["model_type", "version"]
@@ -1177,8 +1198,13 @@ def activate_model():
 
 
 @app.route("/admin/models/delete", methods=["DELETE"])
+@login_required
 def delete_model():
     """Delete a model version"""
+    if not current_user.is_researcher():
+        logger.warning(f"Unauthorized admin access attempt by user: {getattr(current_user, 'id', None)}")
+        return jsonify({"error": "Access denied. Researchers/Admins only."}), 403
+
     try:
         data = request.get_json()
         required_fields = ["model_type", "version"]
@@ -1201,8 +1227,13 @@ def delete_model():
 
 
 @app.route("/admin/models/ab-testing", methods=["POST"])
+@login_required
 def toggle_ab_testing():
     """Enable or disable A/B testing"""
+    if not current_user.is_researcher():
+        logger.warning(f"Unauthorized admin access attempt by user: {getattr(current_user, 'id', None)}")
+        return jsonify({"error": "Access denied. Researchers/Admins only."}), 403
+
     try:
         data = request.get_json()
         enabled = data.get("enabled", True)
@@ -1220,8 +1251,13 @@ def toggle_ab_testing():
 
 
 @app.route("/admin/models/ab-ratio", methods=["POST"])
+@login_required
 def set_ab_ratio():
     """Set A/B testing ratio for a model version"""
+    if not current_user.is_researcher():
+        logger.warning(f"Unauthorized admin access attempt by user: {getattr(current_user, 'id', None)}")
+        return jsonify({"error": "Access denied. Researchers/Admins only."}), 403
+
     try:
         data = request.get_json()
         required_fields = ["model_type", "version", "ratio"]
@@ -1244,8 +1280,13 @@ def set_ab_ratio():
 
 
 @app.route("/admin/models/metrics", methods=["GET"])
+@login_required
 def get_model_metrics():
     """Get performance metrics for all models"""
+    if not current_user.is_researcher():
+        logger.warning(f"Unauthorized admin access attempt by user: {getattr(current_user, 'id', None)}")
+        return jsonify({"error": "Access denied. Researchers/Admins only."}), 403
+
     try:
         models = registry.list_models()
         return jsonify({"status": "success", "metrics": models})
@@ -1255,8 +1296,13 @@ def get_model_metrics():
 
 
 @app.route("/admin/models/rollback-threshold", methods=["POST"])
+@login_required
 def set_rollback_threshold():
     """Set automatic rollback threshold"""
+    if not current_user.is_researcher():
+        logger.warning(f"Unauthorized admin access attempt by user: {getattr(current_user, 'id', None)}")
+        return jsonify({"error": "Access denied. Researchers/Admins only."}), 403
+
     try:
         data = request.get_json()
         threshold = data.get("threshold")
@@ -1281,8 +1327,13 @@ def set_rollback_threshold():
 
 
 @app.route("/admin/models/export/pdf", methods=["GET"])
+@login_required
 def export_pdf():
     """Export model metrics as PDF"""
+    if not current_user.is_researcher():
+        logger.warning(f"Unauthorized admin access attempt by user: {getattr(current_user, 'id', None)}")
+        return jsonify({"error": "Access denied. Researchers/Admins only."}), 403
+
     try:
         from reportlab.lib import colors
         from reportlab.lib.pagesizes import letter
