@@ -3411,3 +3411,198 @@ input[type="range"]::-moz-range-thumb:hover {
     transform: translateY(var(--hover-translate-y));
     box-shadow: var(--hover-shadow-modern);
 }
+
+/* =========================================================
+   Issue #308: Unified Action Button System
+   ========================================================= */
+
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 1.8rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.btn-action:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.btn-action i {
+    font-size: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.btn-action:hover:not(:disabled) i {
+    transform: scale(1.15);
+}
+
+/* ========== PRIMARY BUTTON (Action Green - Voice Assistant) ========== */
+.btn-action-primary {
+    background: linear-gradient(135deg, var(--emerald-green), var(--fresh-green));
+    color: white;
+    box-shadow: 0 4px 15px rgba(92, 209, 139, 0.3);
+}
+
+.btn-action-primary:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(92, 209, 139, 0.45);
+    background: linear-gradient(135deg, var(--fresh-green), var(--emerald-green));
+}
+
+.btn-action-primary:active:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(92, 209, 139, 0.3);
+}
+
+.btn-action-primary:focus-visible {
+    outline: 3px solid rgba(92, 209, 139, 0.5);
+    outline-offset: 2px;
+}
+
+/* ========== SECONDARY BUTTON (Action Blue - Download PDF) ========== */
+.btn-action-secondary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btn-action-secondary:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.45);
+    background: linear-gradient(135deg, #764ba2, #667eea);
+}
+
+.btn-action-secondary:active:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-action-secondary:focus-visible {
+    outline: 3px solid rgba(102, 126, 234, 0.5);
+    outline-offset: 2px;
+}
+
+/* ========== TERTIARY BUTTON (Action Gray - New Analysis) ========== */
+.btn-action-tertiary {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--text-color);
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn-action-tertiary:hover:not(:disabled) {
+    transform: translateY(-3px);
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.35);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.btn-action-tertiary:active:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn-action-tertiary:focus-visible {
+    outline: 3px solid rgba(100, 100, 100, 0.3);
+    outline-offset: 2px;
+}
+
+/* ========== LIGHT THEME OVERRIDES ========== */
+[data-theme="light"] .btn-action-tertiary {
+    background: linear-gradient(135deg, rgba(46, 139, 87, 0.08), rgba(76, 175, 80, 0.08));
+    color: #1a3a2b;
+    border: 2px solid rgba(46, 139, 87, 0.2);
+    box-shadow: 0 4px 15px rgba(46, 139, 87, 0.12);
+}
+
+[data-theme="light"] .btn-action-tertiary:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(46, 139, 87, 0.15), rgba(76, 175, 80, 0.15));
+    border-color: rgba(46, 139, 87, 0.3);
+    box-shadow: 0 8px 24px rgba(46, 139, 87, 0.2);
+}
+
+[data-theme="light"] .btn-action-primary {
+    background: linear-gradient(135deg, #2E8B57, #4CAF50);
+    box-shadow: 0 4px 15px rgba(46, 139, 87, 0.25);
+}
+
+[data-theme="light"] .btn-action-primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4CAF50, #2E8B57);
+    box-shadow: 0 8px 24px rgba(46, 139, 87, 0.35);
+}
+
+[data-theme="light"] .btn-action-secondary {
+    background: linear-gradient(135deg, #5c7cfa, #6f42c1);
+    box-shadow: 0 4px 15px rgba(95, 124, 250, 0.25);
+}
+
+[data-theme="light"] .btn-action-secondary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #6f42c1, #5c7cfa);
+    box-shadow: 0 8px 24px rgba(95, 124, 250, 0.35);
+}
+
+/* ========== DARK THEME ENHANCEMENTS ========== */
+[data-theme="dark"] .btn-action-primary {
+    background: linear-gradient(135deg, #5cd18b, #6ddc90);
+    box-shadow: 0 4px 15px rgba(92, 209, 139, 0.35);
+}
+
+[data-theme="dark"] .btn-action-primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #6ddc90, #5cd18b);
+    box-shadow: 0 8px 24px rgba(92, 209, 139, 0.55);
+}
+
+[data-theme="dark"] .btn-action-secondary {
+    background: linear-gradient(135deg, #7c8ff0, #8b5cf6);
+    box-shadow: 0 4px 15px rgba(123, 143, 240, 0.35);
+}
+
+[data-theme="dark"] .btn-action-secondary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #8b5cf6, #7c8ff0);
+    box-shadow: 0 8px 24px rgba(123, 143, 240, 0.55);
+}
+
+[data-theme="dark"] .btn-action-tertiary {
+    background: rgba(255, 255, 255, 0.08);
+    color: #e0e0e0;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .btn-action-tertiary:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* ========== RESPONSIVE DESIGN ========== */
+@media (max-width: 768px) {
+    .btn-action {
+        padding: 0.6rem 1.4rem;
+        font-size: 0.9rem;
+    }
+
+    .btn-action i {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .btn-action {
+        width: 100%;
+        justify-content: center;
+        padding: 0.8rem 1.2rem;
+    }
+}
