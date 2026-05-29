@@ -124,7 +124,7 @@
                 <!-- File Upload Area -->
                 <div id="validation-error" class="alert alert-error weather-location-alert"
                     style="display:none; margin-top:1rem;" role="alert">
-                    <i class="fas fa-exclamation-circle"></i>
+                    <i data-lucide="alert-circle"></i>
                     <span id="error-message"></span>
                 </div>
 
@@ -151,7 +151,7 @@
                         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 16px rgba(46, 139, 87, 0.25)';"
                         onfocus="this.style.outline='3px solid var(--emerald-green)'; this.style.outlineOffset='2px';"
                         onblur="this.style.outline='none';">
-                        <i class="fas fa-camera" style="font-size: 1.3rem;"></i>
+                        <i data-lucide="camera" style="font-size: 1.3rem;"></i>
                         <span>Take Crop Photo</span>
                     </button>
 
@@ -191,10 +191,10 @@
         font-weight: 600;
         transition: background 0.2s;
     " onmouseover="this.style.background='#c82333'" onmouseout="this.style.background='#dc3545'">
-                            <i class="fas fa-trash-alt"></i> Clear & Remove
+                            <i data-lucide="trash-2"></i> Clear & Remove
                         </button>
                     </div>
-                    <i class="fas fa-cloud-upload-alt"
+                    <i data-lucide="upload-cloud"
                         style="font-size: 2.5rem; color: var(--emerald-green); margin-bottom: 1rem;"></i>
                     <p style="font-size: 1rem; margin-bottom: 0.5rem;">Drag & drop any crop file here</p>
                     <p style="font-size: 0.85rem; opacity: 0.6;">All formats supported (Images, PDFs, etc. — Max 5MB)
@@ -215,15 +215,15 @@
                     <div id="qualitySuggestionList" class="quality-suggestion-list"></div>
                     <div id="qualityActions" class="quality-actions" style="display:none;">
                         <button type="button" class="btn btn-secondary" onclick="resetUpload()">
-                            <i class="fas fa-arrow-rotate-left"></i> Re-upload
+                            <i data-lucide="rotate-ccw"></i> Re-upload
                         </button>
                         <button type="button" class="btn btn-primary" onclick="continueWithCurrentImage()">
-                            <i class="fas fa-play"></i> Continue Anyway
+                            <i data-lucide="play"></i> Continue Anyway
                         </button>
                     </div>
                 </div>
                 <button type="submit" class="btn btn-primary btn-large action-btn">
-                        <i class="fas fa-magnifying-glass"></i> Start AI Analysis
+                        <i data-lucide="search"></i> Start AI Analysis
                     </button>
                 <!-- Smart Crop Health Insights Panel -->
                 <div class="smart-insights-panel">
@@ -400,16 +400,16 @@
 
             <div class="info-grid reveal-stagger">
                 <div class="glass-card reveal reveal-slide-right tip-card">
-                    <h4 style="color: var(--emerald-green); margin-bottom: 1rem;"><i class="fas fa-lightbulb"></i> Pro
+                    <h4 style="color: var(--emerald-green); margin-bottom: 1rem;"><i data-lucide="lightbulb"></i> Pro
                         Tips</h4>
                     <ul class="tip-list">
-                        <li><i class="fas fa-check"></i> Use clear daylight</li>
-                        <li><i class="fas fa-check"></i> Focus on the bolls</li>
-                        <li><i class="fas fa-check"></i> Keep camera steady</li>
+                        <li><i data-lucide="check"></i> Use clear daylight</li>
+                        <li><i data-lucide="check"></i> Focus on the bolls</li>
+                        <li><i data-lucide="check"></i> Keep camera steady</li>
                     </ul>
                 </div>
                 <div class="glass-card reveal reveal-slide-left help-card">
-                    <h4 style="color: var(--ai-blue); margin-bottom: 1rem;"><i class="fas fa-info-circle"></i> Quick
+                    <h4 style="color: var(--ai-blue); margin-bottom: 1rem;"><i data-lucide="info"></i> Quick
                         Help</h4>
                     <p style="font-size: 0.9rem; opacity: 0.8;">Our AI analyzes over 50 specific markers to determine
                         growth stage and health status.</p>
@@ -700,10 +700,10 @@
         statusText.textContent = `${status} image quality`;
         scoreBadge.textContent = `${score}/100`;
         warningList.innerHTML = warnings.map(item => (
-            `<div class="quality-warning-item"><i class="fas fa-triangle-exclamation"></i><span>${item}</span></div>`
+            `<div class="quality-warning-item"><i data-lucide="alert-triangle"></i><span>${item}</span></div>`
         )).join('');
         suggestionList.innerHTML = suggestions.map(item => (
-            `<div class="quality-suggestion-item"><i class="fas fa-lightbulb"></i><span>${item}</span></div>`
+            `<div class="quality-suggestion-item"><i data-lucide="lightbulb"></i><span>${item}</span></div>`
         )).join('');
         actions.style.display = options.allowContinue ? 'flex' : 'none';
         panel.style.display = 'block';
@@ -947,7 +947,7 @@
 
         isAnalyzing = true;
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+        submitBtn.innerHTML = '<i data-lucide="loader-2" class="lucide-spin -spin"></i> Analyzing...';
 
         // Show progress panel, hide submit button (or disable it during progress)
         panel.style.display = 'block';
@@ -1019,7 +1019,7 @@
                         isAnalyzing = false;
                         submitBtn.style.display = '';
                         submitBtn.disabled = false;
-                        submitBtn.innerHTML = '<i class="fas fa-magnifying-glass"></i> Start AI Analysis';
+                        submitBtn.innerHTML = '<i data-lucide="search"></i> Start AI Analysis';
                         // Ensure preview remains visible
                         const previewContainer = document.getElementById('previewContainer');
                         if (previewContainer) previewContainer.style.display = 'block';
@@ -1042,7 +1042,7 @@
                         isAnalyzing = false;
                         submitBtn.style.display = '';
                         submitBtn.disabled = false;
-                        submitBtn.innerHTML = '<i class="fas fa-magnifying-glass"></i> Try Again';
+                        submitBtn.innerHTML = '<i data-lucide="search"></i> Try Again';
                         return;
                     }
 
@@ -1131,7 +1131,7 @@
             isAnalyzing = false;
             submitBtn.style.display = '';
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-magnifying-glass"></i> Try Again';
+            submitBtn.innerHTML = '<i data-lucide="search"></i> Try Again';
         } finally {
             // Reset analyzing state if we didn't redirect
             if (!finalPayload) {

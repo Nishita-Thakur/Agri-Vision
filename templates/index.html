@@ -28,7 +28,35 @@
     </script>
     <script src="{{ url_for('static', filename='js/i18n.js') }}" defer></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        window.refreshIcons = function() {
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        };
+        document.addEventListener('DOMContentLoaded', () => {
+            window.refreshIcons();
+            const observer = new MutationObserver((mutations) => {
+                let hasNewIcons = false;
+                mutations.forEach(m => {
+                    m.addedNodes.forEach(node => {
+                        if (node.nodeType === 1) {
+                            if (node.tagName === 'I' && node.hasAttribute('data-lucide')) hasNewIcons = true;
+                            if (node.querySelector && node.querySelector('i[data-lucide]')) hasNewIcons = true;
+                        }
+                    });
+                });
+                if (hasNewIcons) {
+                    observer.disconnect();
+                    window.refreshIcons();
+                    observer.observe(document.body, { childList: true, subtree: true });
+                }
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
+    </script>
     <!-- PDF.js for PDF to Image conversion -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <!-- Three.js CDN for interactive 3D model simulation -->
@@ -503,7 +531,7 @@ src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit
     <nav class="navbar" id="navbar">
         <div class="nav-container">
             <a href="/" class="nav-brand">
-                <i class="fas fa-seedling"></i>
+                <i data-lucide="leaf"></i>
                 <span data-i18n="brand_name">
                     Agri-Vision
                 </span>
@@ -522,7 +550,7 @@ src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit
                 
                 <li>
                     <div class="lang-selector-container">
-                        <i class="fas fa-globe" style="color: var(--text-color, #333);"></i>
+                        <i data-lucide="globe" style="color: var(--text-color, #333);"></i>
                         <select id="lang-selector" class="lang-selector" aria-label="Select Language">
                             <option value="en">English</option>
                             <option value="hi">हिन्दी</option>
@@ -537,7 +565,7 @@ src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit
 
                 <li>
                     <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle dark mode">
-                        <i class="fas fa-moon"></i>
+                        <i data-lucide="moon"></i>
                     </button>
                 </li>
                 <li><a href="/analyze" class="btn btn-primary" data-i18n="navbar.getStarted">Get Started</a></li>
@@ -552,7 +580,7 @@ src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit
                 <div class="alert-container no-print">
                     {% for category, message in messages %}
                         <div class="alert alert-{{ category }}">
-                            <i class="fas {% if category == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+                            <i data-lucide="check-circle" class="{% if category == 'success' %}-check-circle{% else %}-exclamation-circle{% endif %}"></i>
                             <span>{{ message }}</span>
                         </div>
                     {% endfor %}
@@ -590,11 +618,11 @@ src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit
                 
                     <div class="hero-cta">
                         <a href="/analyze" class="btn btn-primary">
-                            <i class="fas fa-camera"></i> <span data-i18n="hero.analyzeBtn">Analyze Image</span>
+                            <i data-lucide="camera"></i> <span data-i18n="hero.analyzeBtn">Analyze Image</span>
                         </a>
                         
                         <a href="/demo" class="btn btn-secondary">
-                            <i class="fas fa-play-circle"></i> <span data-i18n="hero.demoBtn">View Demo</span>
+                            <i data-lucide="play-circle"></i> <span data-i18n="hero.demoBtn">View Demo</span>
                         </a>
                     </div>
                 </div>
@@ -612,10 +640,10 @@ src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit
 
                         <!-- High Tech Sat Scan HUD overlay -->
                         <div class="mock-bbox bbox-1" style="top: 12%; left: 8%;">
-                            <span class="bbox-label" id="hud-sat-status"><i class="fas fa-satellite"></i> Sat Scan: active</span>
+                            <span class="bbox-label" id="hud-sat-status"><i data-lucide="satellite"></i> Sat Scan: active</span>
                         </div>
                         <div class="mock-bbox bbox-2" style="bottom: 12%; right: 8%;">
-                            <span class="bbox-label" id="hud-anomalies"><i class="fas fa-exclamation-triangle"></i> ANOMALY DETECTION: 0%</span>
+                            <span class="bbox-label" id="hud-anomalies"><i data-lucide="exclamation-triangle"></i> ANOMALY DETECTION: 0%</span>
                         </div>
 
                         <!-- Interactive 3D WebGL Crop Scanner Container -->
@@ -638,7 +666,7 @@ src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit
 
                     <!-- Telemetry Metric Panel 2 (Speed) -->
                     <div class="floating-telemetry-2 glass-card" id="telemetry-status-card">
-                        <i class="fas fa-satellite telemetry-icon-spin telemetry-icon" id="telemetry-status-icon"></i>
+                        <i data-lucide="satellite" class="telemetry-icon-spin telemetry-icon" id="telemetry-status-icon"></i>
                         <div>
                             <h4 id="telemetry-status-title" class="telemetry-title">Uplink Active</h4>
                             <p id="telemetry-status-sub" class="telemetry-sub">Sat Latency: 24ms</p>
@@ -653,7 +681,7 @@ src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit
 
                 <div class="demo-preview-left">
                     <span class="demo-chip">
-                        <i class="fas fa-bolt"></i>
+                        <i data-lucide="zap"></i>
                         LIVE AI DEMONSTRATION
                     </span>
 
@@ -694,7 +722,7 @@ src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit
                     </div>
 
                     <a href="/demo" class="btn btn-primary demo-btn">
-                        <i class="fas fa-play-circle"></i>
+                        <i data-lucide="play-circle"></i>
                         Launch Interactive Demo
                     </a>
                 </div>
@@ -745,7 +773,7 @@ src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit
             <div class="features-grid reveal-stagger">
                 <div class="feature-card reveal reveal-fade-up">
                     <div class="feature-icon-wrapper">
-                        <i class="fas fa-chart-line"></i>
+                        <i data-lucide="line-chart"></i>
                     </div>
                     <h3 data-i18n="growth_detection">
                         Growth Detection
@@ -757,21 +785,21 @@ src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit
                 </div>
                 <div class="feature-card reveal reveal-fade-up">
                     <div class="feature-icon-wrapper">
-                        <i class="fas fa-heartbeat"></i>
+                        <i data-lucide="activity"></i>
                     </div>
                     <h3 data-i18n="health_assessment">Health Assessment</h3>
                     <p data-i18n="health_desc">Early detection of diseases and pests like Pink Bollworm before they impact your yield.</p>
                 </div>
                 <div class="feature-card reveal reveal-fade-up">
                     <div class="feature-icon-wrapper">
-                        <i class="fas fa-brain"></i>
+                        <i data-lucide="brain"></i>
                     </div>
                     <h3 data-i18n="smart_diagnostics">Smart Diagnostics</h3>
                     <p data-i18n="diagnostics_desc">Leverage deep learning models trained on thousands of cotton-specific agricultural images.</p>
                 </div>
                 <div class="feature-card reveal reveal-fade-up">
                     <div class="feature-icon-wrapper">
-                        <i class="fas fa-calendar-check"></i>
+                        <i data-lucide="calendar-check"></i>
                     </div>
                     <h3 data-i18n="harvest_optimizer">Harvest Optimizer</h3>
                     <p data-i18n="harvest_desc">Receive data-driven recommendations on the optimal window for cotton bursting and collection.</p>
@@ -786,7 +814,7 @@ src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit
         </div>
         <div class="footer-container">
             <div class="footer-brand">
-                <h2 class="footer-title"><i class="fas fa-leaf"></i> Agri-Vision</h2>
+                <h2 class="footer-title"><i data-lucide="leaf"></i> Agri-Vision</h2>
                 <p class="footer-subtitle" data-i18n="footer.subtitle">Empowering cotton farmers with AI-driven insights.</p>
             </div>
             <div class="footer-links-compact">
@@ -805,8 +833,8 @@ src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit
                 Smart Cotton Crop Analysis System
             </p>
             <div class="footer-social">
-                <a href="https://www.linkedin.com/in/neerugangarh/" target="_blank"><i class="fab fa-linkedin"></i></a>
-                <a href="https://github.com/neeru24/Agri-Vision" target="_blank"><i class="fab fa-github"></i></a>
+                <a href="https://www.linkedin.com/in/neerugangarh/" target="_blank"><i data-lucide="linkedin"></i></a>
+                <a href="https://github.com/neeru24/Agri-Vision" target="_blank"><i data-lucide="github"></i></a>
             </div>
         </div>
     </footer>
@@ -978,7 +1006,7 @@ src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit
     </script>
     <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
     <button id="scrollTopBtn">
-        <i class="fas fa-arrow-up"></i>
+        <i data-lucide="arrow-up"></i>
     </button>
     <script>
         const scrollBtn = document.getElementById("scrollTopBtn");
@@ -1032,15 +1060,15 @@ src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit
                 title="Chat with Agri-Vision AI"
                 aria-label="Open AI chat assistant"
                 aria-expanded="false">
-            <i class="fas fa-comment-alt"></i>
+            <i data-lucide="comment-alt"></i>
         </button>
 
         <!-- Chatbot Widget (starts collapsed) -->
         <div id="chatbot-widget" class="chatbot-widget collapsed no-print" role="dialog" aria-label="Agri-Vision AI Chatbot">
             <div class="chatbot-header">
-                <span><i class="fas fa-comments"></i> Agri-Vision AI</span>
+                <span><i data-lucide="comments"></i> Agri-Vision AI</span>
                 <button id="chatbot-close-btn" class="chatbot-close-btn" aria-label="Close chat">
-                    <i class="fas fa-times"></i>
+                    <i data-lucide="x"></i>
                 </button>
             </div>
             <div class="chatbot-body">
@@ -1054,7 +1082,7 @@ src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit
                 <form id="chat-form" class="chat-input-container" autocomplete="off">
                     <input type="text" id="chat-input" data-i18n-placeholder="chat_placeholder" placeholder="Type a message..." autocomplete="off" aria-label="Chat message">
                     <button type="submit" id="chat-send-btn" class="chat-send-btn" aria-label="Send message">
-                        <i class="fas fa-paper-plane"></i>
+                        <i data-lucide="paper-plane"></i>
                     </button>
                 </form>
             </div>
@@ -1063,7 +1091,7 @@ src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit
         <!-- Chatbot Controller -->
         <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
         <button id="scrollTopBtn">
-            <i class="fas fa-arrow-up"></i>
+            <i data-lucide="arrow-up"></i>
         </button>
         <script>
     // Mobile Navigation Toggle
