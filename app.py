@@ -282,7 +282,7 @@ disease_info_map = {
 }
 
 UNCERTAINTY_THRESHOLD = 0.45
-AMBIGUITY_MARGIN = 0.08
+AMBIGUITY_MARGIN = 0.08  
 
 
 class ModelManager:
@@ -359,18 +359,8 @@ class ModelManager:
 
 model_manager = ModelManager()
 
-resnet_model = None
-yolo_model = None
-
-
-def load_models():
-    global resnet_model, yolo_model
-    resnet_model, yolo_model = model_manager.load_models()
-    return resnet_model, yolo_model
-
-
 def ensure_models_loaded() -> None:
-    load_models()
+    model_manager.load_models()
 
 
 def _ensure_rgb(image: np.ndarray) -> np.ndarray:
