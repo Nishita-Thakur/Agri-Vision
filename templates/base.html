@@ -24,6 +24,35 @@
     <script src="{{ url_for('static', filename='js/i18n.js') }}" defer></script>
     <script src="{{ url_for('static', filename='js/animations.js') }}" defer></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        window.refreshIcons = function() {
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        };
+        document.addEventListener('DOMContentLoaded', () => {
+            window.refreshIcons();
+            const observer = new MutationObserver((mutations) => {
+                let hasNewIcons = false;
+                mutations.forEach(m => {
+                    m.addedNodes.forEach(node => {
+                        if (node.nodeType === 1) {
+                            if (node.tagName === 'I' && node.hasAttribute('data-lucide')) hasNewIcons = true;
+                            if (node.querySelector && node.querySelector('i[data-lucide]')) hasNewIcons = true;
+                        }
+                    });
+                });
+                if (hasNewIcons) {
+                    observer.disconnect();
+                    window.refreshIcons();
+                    observer.observe(document.body, { childList: true, subtree: true });
+                }
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
+    </script>
 </head>
 <body>
     <header>
@@ -37,7 +66,7 @@
             <a href="/model-admin" style="font-weight: bold; color: #667eea;" data-i18n="navbar.admin">🤖 Admin</a>
             
             <div class="lang-selector-container">
-                <i class="fas fa-globe"></i>
+                <i data-lucide="globe"></i>
                 <select id="lang-selector" class="lang-selector" aria-label="Select Language">
                     <option value="en">English</option>
                     <option value="hi">हिन्दी</option>
