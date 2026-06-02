@@ -16,6 +16,7 @@ from typing import Any, Dict, Optional, Tuple
 from werkzeug.utils import secure_filename
 from io import BytesIO
 
+import redis
 import base64
 import cv2
 import numpy as np
